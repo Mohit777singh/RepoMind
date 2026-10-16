@@ -6,10 +6,13 @@ import {
   AlertTriangle,
   Bug,
   Calendar,
+  Check,
   CheckCircle,
   Code2,
+  Copy,
   Cpu,
   ExternalLink,
+  FileCode,
   HelpCircle,
   Lightbulb,
   Loader2,
@@ -17,7 +20,9 @@ import {
   RefreshCw,
   Sparkles,
   Tag,
+  Terminal,
   User,
+  Wrench,
   X,
   Zap,
 } from "lucide-react";
@@ -31,10 +36,12 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
   issue,
   onClose,
 }) => {
-  const [activeTab, setActiveTab] = useState<"details" | "diagnosis">("details");
+  const [activeTab, setActiveTab] = useState<"details" | "diagnosis" | "solution">("details");
   const [analysis, setAnalysis] = useState<IssueAnalysis | null>(null);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [copiedPatch, setCopiedPatch] = useState(false);
+  const [copiedTest, setCopiedTest] = useState(false);
 
   useEffect(() => {
     if (!issue) {
@@ -80,6 +87,17 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
     }
   };
 
+  const handleCopy = (text: string, type: "patch" | "test") => {
+    navigator.clipboard.writeText(text);
+    if (type === "patch") {
+      setCopiedPatch(true);
+      setTimeout(() => setCopiedPatch(false), 2000);
+    } else {
+      setCopiedTest(true);
+      setTimeout(() => setCopiedTest(false), 2000);
+    }
+  };
+
   const getPriorityStyle = (priority?: string) => {
     switch (priority) {
       case "P0_CRITICAL":
@@ -93,12 +111,48 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
     }
   };
 
+  const renderDiffLine = (line: string, idx: number) => {
+    let color = "#d1d5db";
+    let bg = "transparent";
+
+    if (line.startsWith("+") && !line.startsWith("+++")) {
+      color = "#34d399";
+      bg = "rgba(16, 185, 129, 0.15)";
+    } else if (line.startsWith("-") && !line.startsWith("---")) {
+      color = "#f87171";
+      bg = "rgba(239, 68, 68, 0.15)";
+    } else if (line.startsWith("@@")) {
+      color = "#60a5fa";
+      bg = "rgba(59, 130, 246, 0.1)";
+    } else if (line.startsWith("---") || line.startsWith("+++")) {
+      color = "#a78bfa";
+      bg = "rgba(139, 92, 246, 0.1)";
+    }
+
+    return (
+      <div
+        key={idx}
+        style={{
+          padding: "2px 8px",
+          backgroundColor: bg,
+          color: color,
+          fontFamily: "var(--font-mono)",
+          fontSize: "0.825rem",
+          whiteSpace: "pre",
+          lineHeight: 1.5,
+        }}
+      >
+        {line}
+      </div>
+    );
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
         className="modal-content"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: "840px", width: "95%", maxHeight: "90vh", display: "flex", flexDirection: "column" }}
+        style={{ maxWidth: "860px", width: "95%", maxHeight: "90vh", display: "flex", flexDirection: "column" }}
       >
         {/* Modal Header */}
         <div className="modal-header" style={{ alignItems: "flex-start", gap: "1rem", flexShrink: 0 }}>
@@ -165,8 +219,10 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
             paddingBottom: "0.5rem",
             marginBottom: "1.25rem",
             flexShrink: 0,
+            flexWrap: "wrap",
           }}
         >
+          {/* Tab 1: Details */}
           <button
             onClick={() => setActiveTab("details")}
             style={{
@@ -186,6 +242,7 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
             <span>Issue Details</span>
           </button>
 
+          {/* Tab 2: Diagnosis */}
           <button
             onClick={() => setActiveTab("diagnosis")}
             style={{
@@ -210,11 +267,45 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
                   fontSize: "0.7rem",
                   padding: "1px 5px",
                   borderRadius: "10px",
+                  backgroundColor: "#3b82f6",
+                  color: "#ffffff",
+                }}
+              >
+                Diagnosed
+              </span>
+            )}
+          </button>
+
+          {/* Tab 3: Proposed Code Solution */}
+          <button
+            onClick={() => setActiveTab("solution")}
+            style={{
+              padding: "0.5rem 1rem",
+              background: activeTab === "solution" ? "linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(59, 130, 246, 0.25))" : "transparent",
+              color: activeTab === "solution" ? "#ffffff" : "var(--text-secondary)",
+              border: activeTab === "solution" ? "1px solid #10b981" : "1px solid transparent",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontWeight: 600,
+              fontSize: "0.875rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.4rem",
+            }}
+          >
+            <Wrench size={15} color="#10b981" />
+            <span>Proposed Code Solution</span>
+            {analysis?.proposed_code_patch && (
+              <span
+                style={{
+                  fontSize: "0.7rem",
+                  padding: "1px 5px",
+                  borderRadius: "10px",
                   backgroundColor: "#10b981",
                   color: "#ffffff",
                 }}
               >
-                Ready
+                Patch Ready
               </span>
             )}
           </button>
@@ -328,7 +419,7 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
                 </div>
               </div>
             </>
-          ) : (
+          ) : activeTab === "diagnosis" ? (
             /* AI DEBUGGER & DIAGNOSTIC TAB */
             <div>
               {/* Header Action */}
@@ -600,6 +691,171 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+            </div>
+          ) : (
+            /* TAB 3: PROPOSED CODE SOLUTION & PATCH */
+            <div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
+                <div>
+                  <h3 style={{ fontSize: "1.1rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <Wrench size={18} color="#10b981" />
+                    <span>Automated Code Patch & Verification Test</span>
+                  </h3>
+                  <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>
+                    RepoMind synthesizes a defensive fix patch and regression test to solve the diagnosed root cause.
+                  </p>
+                </div>
+
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={handleRunDiagnosis}
+                  disabled={loadingAnalysis}
+                >
+                  {loadingAnalysis ? (
+                    <Loader2 size={14} className="spinner-sm" style={{ animation: "spin 1s linear infinite" }} />
+                  ) : (
+                    <RefreshCw size={14} />
+                  )}
+                  <span>Re-Generate Fix</span>
+                </button>
+              </div>
+
+              {analysis?.proposed_code_patch ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                  {/* Target File Info Banner */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "0.75rem 1rem",
+                      backgroundColor: "var(--bg-card)",
+                      borderRadius: "6px",
+                      border: "1px solid var(--border-color)",
+                      fontSize: "0.85rem",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <FileCode size={16} color="#3b82f6" />
+                      <span>Target File to Patch:</span>
+                      <strong style={{ color: "var(--text-primary)", fontFamily: "var(--font-mono)" }}>
+                        {analysis.fix_target_file || "src/main.py"}
+                      </strong>
+                    </div>
+                    <span className="badge badge-open" style={{ fontSize: "0.75rem" }}>
+                      Defensive Patch Ready
+                    </span>
+                  </div>
+
+                  {/* Why this fix works */}
+                  {analysis.patch_explanation && (
+                    <div
+                      style={{
+                        padding: "1rem",
+                        backgroundColor: "rgba(16, 185, 129, 0.1)",
+                        border: "1px solid rgba(16, 185, 129, 0.3)",
+                        borderRadius: "6px",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.35rem" }}>
+                        <CheckCircle size={15} color="#10b981" />
+                        <span style={{ fontWeight: 600, fontSize: "0.875rem", color: "#6ee7b7" }}>
+                          How this patch solves the bug
+                        </span>
+                      </div>
+                      <p style={{ fontSize: "0.825rem", lineHeight: 1.5, color: "var(--text-primary)", margin: 0 }}>
+                        {analysis.patch_explanation}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Proposed Patch Diff Box */}
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.4rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 600 }}>
+                        <Code2 size={14} color="#10b981" />
+                        <span>PROPOSED GIT UNIFIED DIFF PATCH</span>
+                      </div>
+
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: "0.75rem", padding: "2px 8px" }}
+                        onClick={() => handleCopy(analysis.proposed_code_patch || "", "patch")}
+                      >
+                        {copiedPatch ? <Check size={12} color="#10b981" /> : <Copy size={12} />}
+                        <span>{copiedPatch ? "Copied!" : "Copy Patch"}</span>
+                      </button>
+                    </div>
+
+                    <div
+                      style={{
+                        backgroundColor: "#030712",
+                        border: "1px solid var(--border-color)",
+                        borderRadius: "6px",
+                        overflowX: "auto",
+                        maxHeight: "260px",
+                        padding: "0.5rem 0",
+                      }}
+                    >
+                      {analysis.proposed_code_patch.split("\n").map((line, idx) =>
+                        renderDiffLine(line, idx)
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Automated Verification Test */}
+                  {analysis.verification_test_code && (
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.4rem" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 600 }}>
+                          <Terminal size={14} color="#60a5fa" />
+                          <span>REGRESSION VERIFICATION UNIT TEST (Pytest)</span>
+                        </div>
+
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          style={{ fontSize: "0.75rem", padding: "2px 8px" }}
+                          onClick={() => handleCopy(analysis.verification_test_code || "", "test")}
+                        >
+                          {copiedTest ? <Check size={12} color="#10b981" /> : <Copy size={12} />}
+                          <span>{copiedTest ? "Copied!" : "Copy Test"}</span>
+                        </button>
+                      </div>
+
+                      <pre
+                        style={{
+                          backgroundColor: "#030712",
+                          border: "1px solid var(--border-color)",
+                          borderRadius: "6px",
+                          padding: "1rem",
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "0.8rem",
+                          color: "#93c5fd",
+                          overflowX: "auto",
+                          maxHeight: "220px",
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {analysis.verification_test_code}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="card" style={{ textAlign: "center", padding: "3rem" }}>
+                  <Wrench size={36} color="var(--text-muted)" style={{ margin: "0 auto 1rem auto" }} />
+                  <h4 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.5rem" }}>
+                    No Proposed Solution Generated Yet
+                  </h4>
+                  <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", maxWidth: "420px", margin: "0 auto 1.5rem auto" }}>
+                    Click below to have RepoMind analyze the bug context and synthesize a proposed code patch and verification test.
+                  </p>
+                  <button className="btn btn-primary btn-sm" onClick={handleRunDiagnosis} disabled={loadingAnalysis}>
+                    {loadingAnalysis ? <Loader2 size={14} className="spinner-sm" /> : <Sparkles size={14} />}
+                    <span>Generate Solution & Patch</span>
+                  </button>
                 </div>
               )}
             </div>

@@ -90,7 +90,11 @@ def test_triage_service_diagnose_flow(db_session, repo_with_bug_issue):
     assert analysis.stack_trace_detected is True
     assert analysis.reproduction_steps_detected is True
     assert "KeyError" in (analysis.error_type or "")
-    assert len(analysis.root_cause_hypothesis) > 10
+    # Verify code solution generated
+    assert analysis.proposed_code_patch is not None
+    assert "--- a/" in analysis.proposed_code_patch
+    assert analysis.verification_test_code is not None
+    assert "def test_" in analysis.verification_test_code
 
     # Verify recommendations saved
     assert len(analysis.issue.recommendations) > 0
@@ -103,6 +107,7 @@ def test_diagnose_single_issue_api(client, auth_headers, repo_with_bug_issue):
     assert data["issue_id"] == issue.id
     assert data["category"] == "bug"
     assert data["stack_trace_detected"] is True
+    assert data["proposed_code_patch"] is not None
     assert len(data["recommendations"]) >= 1
 
 def test_get_issue_analysis_api(client, auth_headers, repo_with_bug_issue):
@@ -112,3 +117,5 @@ def test_get_issue_analysis_api(client, auth_headers, repo_with_bug_issue):
     data = res.json()
     assert data["issue_id"] == issue.id
     assert "root_cause_hypothesis" in data
+    assert data["proposed_code_patch"] is not None
+

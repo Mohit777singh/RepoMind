@@ -26,6 +26,13 @@ class IssueAnalysisResponse(BaseModel):
     reproduction_steps_detected: bool = False
     extracted_stack_trace: str | None = None
     affected_components: list[Any] = []
+    
+    # Proposed Code Fix & Solution fields
+    fix_target_file: str | None = None
+    proposed_code_patch: str | None = None
+    verification_test_code: str | None = None
+    patch_explanation: str | None = None
+
     analyzed_at: datetime
     recommendations: list[ActionRecommendationResponse] = []
 

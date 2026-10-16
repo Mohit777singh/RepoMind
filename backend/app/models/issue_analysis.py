@@ -42,6 +42,12 @@ class IssueAnalysis(Base):
         default=list,
     )
 
+    # Code Fix & Solution fields
+    fix_target_file = Column(String(255), nullable=True)
+    proposed_code_patch = Column(Text, nullable=True)
+    verification_test_code = Column(Text, nullable=True)
+    patch_explanation = Column(Text, nullable=True)
+
     analyzed_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

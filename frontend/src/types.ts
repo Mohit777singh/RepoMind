@@ -101,6 +101,10 @@ export interface IssueAnalysis {
   reproduction_steps_detected: boolean;
   extracted_stack_trace: string | null;
   affected_components: string[];
+  fix_target_file: string | null;
+  proposed_code_patch: string | null;
+  verification_test_code: string | null;
+  patch_explanation: string | null;
   analyzed_at: string;
   recommendations: ActionRecommendation[];
 }
