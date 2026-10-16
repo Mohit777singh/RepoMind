@@ -279,6 +279,7 @@ export const IssueExplorer: React.FC<IssueExplorerProps> = ({
         <PullRequestExplorer
           repository={repository}
           onSyncRepo={onSyncRepo}
+          onSelectIssue={onSelectIssue}
         />
       )}
 

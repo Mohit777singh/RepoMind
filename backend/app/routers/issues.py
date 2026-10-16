@@ -107,3 +107,22 @@ def get_issue(
             detail=f"Issue with ID {issue_id} not found",
         )
     return IssueResponse.model_validate(issue)
+
+@router.get("/repositories/{repo_id}/issues/by-number/{issue_number}", response_model=IssueResponse)
+def get_issue_by_number(
+    repo_id: int,
+    issue_number: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    issue = (
+        db.query(Issue)
+        .filter(Issue.repository_id == repo_id, Issue.issue_number == issue_number)
+        .first()
+    )
+    if not issue:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Issue #{issue_number} not found in repository",
+        )
+    return IssueResponse.model_validate(issue)

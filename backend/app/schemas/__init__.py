@@ -25,4 +25,5 @@ __all__ = [
     "CommitResponse",
     "CodeDiffResponse",
     "PullRequestChangesResponse",
+    "ResolvedIssueSummary",
 ]

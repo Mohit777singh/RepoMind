@@ -32,6 +32,15 @@ class CodeDiffResponse(BaseModel):
     raw_url: str | None = None
     created_at: datetime
 
+class ResolvedIssueSummary(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    issue_number: int
+    title: str
+    state: str
+    html_url: str
+
 class PullRequestChangesResponse(BaseModel):
     pr_id: int
     pr_number: int
@@ -39,5 +48,6 @@ class PullRequestChangesResponse(BaseModel):
     total_files_changed: int
     total_additions: int
     total_deletions: int
+    resolved_issues: list[ResolvedIssueSummary] = []
     commits: list[CommitResponse]
     files: list[CodeDiffResponse]

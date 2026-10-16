@@ -165,6 +165,14 @@ export interface CodeDiff {
   created_at: string;
 }
 
+export interface ResolvedIssueSummary {
+  id: number;
+  issue_number: number;
+  title: string;
+  state: string;
+  html_url: string;
+}
+
 export interface PullRequestChanges {
   pr_id: number;
   pr_number: number;
@@ -172,6 +180,7 @@ export interface PullRequestChanges {
   total_files_changed: number;
   total_additions: number;
   total_deletions: number;
+  resolved_issues: ResolvedIssueSummary[];
   commits: Commit[];
   files: CodeDiff[];
 }

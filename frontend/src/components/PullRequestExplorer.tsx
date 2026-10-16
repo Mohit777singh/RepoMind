@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { apiGetRepositoryPullRequests } from "../api";
-import { PaginatedPullRequests, PullRequest, Repository } from "../types";
+import { PaginatedPullRequests, PullRequest, Repository, Issue } from "../types";
 import { PullRequestDetailModal } from "./PullRequestDetailModal";
 import {
   AlertCircle,
@@ -19,11 +19,13 @@ import {
 interface PullRequestExplorerProps {
   repository: Repository;
   onSyncRepo?: () => void;
+  onSelectIssue?: (issue: Issue) => void;
 }
 
 export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
   repository,
   onSyncRepo,
+  onSelectIssue,
 }) => {
   const [prsData, setPrsData] = useState<PaginatedPullRequests>({
     items: [],
@@ -514,6 +516,7 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
       <PullRequestDetailModal
         pr={selectedPr}
         onClose={() => setSelectedPr(null)}
+        onSelectIssue={onSelectIssue}
       />
     </div>
   );

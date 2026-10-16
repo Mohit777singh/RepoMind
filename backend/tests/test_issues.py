@@ -181,3 +181,21 @@ def test_get_single_issue_details_success_and_not_found(client, auth_headers, re
     # Nonexistent issue
     res_404 = client.get("/api/issues/99999", headers=auth_headers)
     assert res_404.status_code == 404
+
+def test_get_issue_by_number(client, auth_headers, repo_with_issues, db_session):
+    first_issue = db_session.query(Issue).filter(Issue.repository_id == repo_with_issues.id).first()
+    res = client.get(
+        f"/api/repositories/{repo_with_issues.id}/issues/by-number/{first_issue.issue_number}",
+        headers=auth_headers,
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["id"] == first_issue.id
+    assert data["issue_number"] == first_issue.issue_number
+
+    # 404 for unknown number
+    res_404 = client.get(
+        f"/api/repositories/{repo_with_issues.id}/issues/by-number/999999",
+        headers=auth_headers,
+    )
+    assert res_404.status_code == 404

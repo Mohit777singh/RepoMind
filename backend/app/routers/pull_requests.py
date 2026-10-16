@@ -1,9 +1,11 @@
 import math
+import re
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.commit import Commit
 from app.models.code_diff import CodeDiff
+from app.models.issue import Issue
 from app.models.pull_request import PullRequest
 from app.models.repository import Repository
 from app.models.user import User
@@ -11,12 +13,73 @@ from app.schemas.code_diff import (
     CodeDiffResponse,
     CommitResponse,
     PullRequestChangesResponse,
+    ResolvedIssueSummary,
 )
 from app.schemas.pull_request import PaginatedPullRequestsResponse, PullRequestResponse
 from app.security import get_current_user
 from app.services.ingestion_service import IngestionService
 
 router = APIRouter(tags=["Pull Requests"])
+
+def extract_resolved_issues(db: Session, pr: PullRequest, commits: list[Commit]) -> list[ResolvedIssueSummary]:
+    texts = [pr.title or "", pr.body or ""]
+    for c in commits:
+        if c.message:
+            texts.append(c.message)
+    combined = " ".join(texts)
+
+    pattern = r"(?:fix(?:es|ed)?|close[sd]?|resolve[sd]?)\s+#(\d+)"
+    raw_nums = re.findall(pattern, combined, re.IGNORECASE)
+
+    if not raw_nums and pr.title:
+        raw_nums.extend(re.findall(r"#(\d+)", pr.title))
+
+    issue_numbers = []
+    for num_str in raw_nums:
+        try:
+            n = int(num_str)
+            if n not in issue_numbers and n != pr.pr_number:
+                issue_numbers.append(n)
+        except ValueError:
+            pass
+
+    resolved_summaries: list[ResolvedIssueSummary] = []
+    if issue_numbers:
+        matching_issues = (
+            db.query(Issue)
+            .filter(
+                Issue.repository_id == pr.repository_id,
+                Issue.issue_number.in_(issue_numbers),
+            )
+            .all()
+        )
+        found_nums = set()
+        for iss in matching_issues:
+            found_nums.add(iss.issue_number)
+            resolved_summaries.append(
+                ResolvedIssueSummary(
+                    id=iss.id,
+                    issue_number=iss.issue_number,
+                    title=iss.title,
+                    state=iss.state,
+                    html_url=iss.html_url,
+                )
+            )
+
+        repo_url = pr.repository.html_url if pr.repository else "https://github.com"
+        for n in issue_numbers:
+            if n not in found_nums:
+                resolved_summaries.append(
+                    ResolvedIssueSummary(
+                        id=0,
+                        issue_number=n,
+                        title=f"GitHub Issue #{n}",
+                        state="referenced",
+                        html_url=f"{repo_url}/issues/{n}",
+                    )
+                )
+
+    return resolved_summaries
 
 @router.get("/repositories/{repo_id}/pulls", response_model=PaginatedPullRequestsResponse)
 def get_repository_pull_requests(
@@ -172,6 +235,7 @@ async def get_pull_request_changes(
 
     total_additions = sum(d.additions for d in diffs)
     total_deletions = sum(d.deletions for d in diffs)
+    resolved_issues = extract_resolved_issues(db, pr, commits)
 
     return PullRequestChangesResponse(
         pr_id=pr.id,
@@ -180,6 +244,7 @@ async def get_pull_request_changes(
         total_files_changed=len(diffs),
         total_additions=total_additions,
         total_deletions=total_deletions,
+        resolved_issues=resolved_issues,
         commits=[CommitResponse.model_validate(c) for c in commits],
         files=[CodeDiffResponse.model_validate(d) for d in diffs],
     )
@@ -220,6 +285,7 @@ async def sync_pull_request_diffs(
 
     total_additions = sum(d.additions for d in diffs)
     total_deletions = sum(d.deletions for d in diffs)
+    resolved_issues = extract_resolved_issues(db, pr, commits)
 
     return PullRequestChangesResponse(
         pr_id=pr.id,
@@ -228,6 +294,7 @@ async def sync_pull_request_diffs(
         total_files_changed=len(diffs),
         total_additions=total_additions,
         total_deletions=total_deletions,
+        resolved_issues=resolved_issues,
         commits=[CommitResponse.model_validate(c) for c in commits],
         files=[CodeDiffResponse.model_validate(d) for d in diffs],
     )

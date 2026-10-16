@@ -158,6 +158,10 @@ export async function apiGetIssueDetails(issueId: number): Promise<Issue> {
   return request<Issue>(`/issues/${issueId}`);
 }
 
+export async function apiGetIssueByNumber(repoId: number, issueNumber: number): Promise<Issue> {
+  return request<Issue>(`/repositories/${repoId}/issues/by-number/${issueNumber}`);
+}
+
 // Issue Intelligence & Debugging (Evaluation 2)
 export async function apiDiagnoseIssue(issueId: number): Promise<IssueAnalysis> {
   return request<IssueAnalysis>(`/issues/${issueId}/diagnose`, {
