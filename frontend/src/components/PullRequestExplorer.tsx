@@ -6,8 +6,8 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
+  Columns,
   ExternalLink,
-  FileCode,
   Filter,
   GitMerge,
   GitPullRequest,
@@ -420,23 +420,26 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
                             gap: "0.4rem",
                           }}
                         >
-                          {pr.diff_url && (
-                            <a
-                              href={pr.diff_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="btn btn-secondary btn-sm"
-                              style={{
-                                padding: "3px 6px",
-                                fontSize: "0.75rem",
-                                color: "#93c5fd",
-                              }}
-                              title="View GitHub raw diff"
-                            >
-                              <FileCode size={13} />
-                              <span>Diff</span>
-                            </a>
-                          )}
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPr(pr);
+                            }}
+                            style={{
+                              padding: "3px 8px",
+                              fontSize: "0.75rem",
+                              color: "#93c5fd",
+                              borderColor: "rgba(59, 130, 246, 0.4)",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "0.35rem",
+                            }}
+                            title="Inspect Before & After Side-by-Side Diff"
+                          >
+                            <Columns size={13} />
+                            <span>Diff (Before/After)</span>
+                          </button>
 
                           {pr.html_url && (
                             <a
