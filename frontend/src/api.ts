@@ -7,6 +7,7 @@ import {
   PaginatedIssues,
   PaginatedPullRequests,
   PullRequest,
+  PullRequestChanges,
   Repository,
   User,
 } from "./types";
@@ -200,6 +201,19 @@ export async function apiGetRepositoryPullRequests(
 
 export async function apiGetPullRequestDetails(prId: number): Promise<PullRequest> {
   return request<PullRequest>(`/pulls/${prId}`);
+}
+
+export async function apiGetPullRequestChanges(
+  prId: number,
+  autoSync: boolean = true
+): Promise<PullRequestChanges> {
+  return request<PullRequestChanges>(`/pulls/${prId}/changes?auto_sync=${autoSync}`);
+}
+
+export async function apiSyncPullRequestDiffs(prId: number): Promise<PullRequestChanges> {
+  return request<PullRequestChanges>(`/pulls/${prId}/sync-diffs`, {
+    method: "POST",
+  });
 }
 
 

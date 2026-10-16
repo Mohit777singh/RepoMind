@@ -31,3 +31,21 @@ class Repository(Base):
         passive_deletes=True,
     )
     ingestion_jobs = relationship("IngestionJob", back_populates="repository")
+    pull_requests = relationship(
+        "PullRequest",
+        back_populates="repository",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    commits = relationship(
+        "Commit",
+        back_populates="repository",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    code_diffs = relationship(
+        "CodeDiff",
+        back_populates="repository",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )

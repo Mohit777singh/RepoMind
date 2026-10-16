@@ -7,6 +7,8 @@ from app.models.ingestion_job import IngestionJob
 from app.models.issue import Issue
 from app.models.pull_request import PullRequest
 from app.models.repository import Repository
+from app.models.commit import Commit
+from app.models.code_diff import CodeDiff
 from app.services.github_client import (
     GitHubAPIError,
     GitHubClient,
@@ -218,6 +220,22 @@ class IngestionService:
                             closed_at=pr_closed_at,
                         )
                         db.add(new_pr)
+                db.flush()
+
+                # Pre-enrich up to 3 most recent PRs with commits and file diffs
+                recent_prs = (
+                    db.query(PullRequest)
+                    .filter(PullRequest.repository_id == repository.id)
+                    .order_by(PullRequest.created_at.desc(), PullRequest.pr_number.desc())
+                    .limit(3)
+                    .all()
+                )
+                for pr_obj in recent_prs:
+                    try:
+                        await self.ingest_pull_request_diffs(db, repository, pr_obj)
+                    except Exception as diff_err:
+                        logger.warning(f"Could not pre-enrich PR #{pr_obj.pr_number} with diffs: {diff_err}")
+
             except Exception as pr_err:
                 logger.warning(f"Could not ingest pull requests for {owner}/{repo}: {pr_err}")
 
@@ -248,3 +266,126 @@ class IngestionService:
             logger.exception(f"Unexpected error in ingestion job {job_id}: {e}")
         finally:
             db.close()
+
+    async def ingest_pull_request_diffs(
+        self,
+        db: Session,
+        repository: Repository,
+        pr: PullRequest,
+    ) -> tuple[int, int]:
+        """
+        Fetches and ingests the commits and file diff patches for a given pull request.
+        Returns (commits_count, diffs_count).
+        """
+        owner = repository.owner
+        repo = repository.name
+        pr_number = pr.pr_number
+        now_utc = datetime.now(timezone.utc)
+
+        # 1. Fetch and store commits
+        commits_ingested = 0
+        try:
+            raw_commits = await self.github_client.get_pull_request_commits(owner, repo, pr_number)
+            for item in raw_commits:
+                sha = item.get("sha")
+                if not sha:
+                    continue
+
+                existing_commit = (
+                    db.query(Commit)
+                    .filter(
+                        Commit.repository_id == repository.id,
+                        Commit.pull_request_id == pr.id,
+                        Commit.sha == sha,
+                    )
+                    .first()
+                )
+
+                commit_info = item.get("commit", {})
+                author_info = commit_info.get("author", {})
+                committed_at = parse_iso_datetime(author_info.get("date")) or now_utc
+                message = commit_info.get("message", "")
+                author_name = author_info.get("name") or (item.get("author", {}) or {}).get("login")
+                author_email = author_info.get("email")
+                html_url = item.get("html_url")
+
+                if existing_commit:
+                    existing_commit.message = message
+                    existing_commit.author_name = author_name
+                    existing_commit.author_email = author_email
+                    existing_commit.committed_at = committed_at
+                    existing_commit.html_url = html_url
+                else:
+                    new_commit = Commit(
+                        repository_id=repository.id,
+                        pull_request_id=pr.id,
+                        sha=sha,
+                        message=message,
+                        author_name=author_name,
+                        author_email=author_email,
+                        committed_at=committed_at,
+                        html_url=html_url,
+                    )
+                    db.add(new_commit)
+                commits_ingested += 1
+        except Exception as e:
+            logger.warning(f"Could not ingest commits for PR #{pr_number}: {e}")
+
+        # 2. Fetch and store changed files & diff patches
+        diffs_ingested = 0
+        try:
+            raw_files = await self.github_client.get_pull_request_files(owner, repo, pr_number)
+            for f_item in raw_files:
+                filename = f_item.get("filename")
+                if not filename:
+                    continue
+
+                existing_diff = (
+                    db.query(CodeDiff)
+                    .filter(
+                        CodeDiff.repository_id == repository.id,
+                        CodeDiff.pull_request_id == pr.id,
+                        CodeDiff.filename == filename,
+                    )
+                    .first()
+                )
+
+                status = f_item.get("status", "modified")
+                additions = f_item.get("additions", 0)
+                deletions = f_item.get("deletions", 0)
+                changes_count = f_item.get("changes", additions + deletions)
+                diff_content = f_item.get("patch")
+                raw_url = f_item.get("raw_url")
+                prev_filename = f_item.get("previous_filename")
+                commit_sha = f_item.get("sha")
+
+                if existing_diff:
+                    existing_diff.status = status
+                    existing_diff.additions = additions
+                    existing_diff.deletions = deletions
+                    existing_diff.changes_count = changes_count
+                    existing_diff.diff_content = diff_content
+                    existing_diff.raw_url = raw_url
+                    existing_diff.previous_filename = prev_filename
+                    existing_diff.commit_sha = commit_sha
+                else:
+                    new_diff = CodeDiff(
+                        repository_id=repository.id,
+                        pull_request_id=pr.id,
+                        commit_sha=commit_sha,
+                        filename=filename,
+                        previous_filename=prev_filename,
+                        status=status,
+                        additions=additions,
+                        deletions=deletions,
+                        changes_count=changes_count,
+                        diff_content=diff_content,
+                        raw_url=raw_url,
+                    )
+                    db.add(new_diff)
+                diffs_ingested += 1
+        except Exception as e:
+            logger.warning(f"Could not ingest changed files for PR #{pr_number}: {e}")
+
+        db.commit()
+        return commits_ingested, diffs_ingested

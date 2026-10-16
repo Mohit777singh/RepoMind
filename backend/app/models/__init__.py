@@ -6,6 +6,8 @@ from app.models.pull_request import PullRequest
 from app.models.ingestion_job import IngestionJob
 from app.models.issue_analysis import IssueAnalysis
 from app.models.action_recommendation import ActionRecommendation
+from app.models.commit import Commit
+from app.models.code_diff import CodeDiff
 
 __all__ = [
     "Base",
@@ -16,4 +18,6 @@ __all__ = [
     "IngestionJob",
     "IssueAnalysis",
     "ActionRecommendation",
+    "Commit",
+    "CodeDiff",
 ]

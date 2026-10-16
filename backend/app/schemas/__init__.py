@@ -4,6 +4,7 @@ from app.schemas.issue import IssueResponse, PaginatedIssuesResponse
 from app.schemas.pull_request import PullRequestResponse, PaginatedPullRequestsResponse
 from app.schemas.ingestion_job import JobResponse
 from app.schemas.issue_analysis import IssueAnalysisResponse, ActionRecommendationResponse
+from app.schemas.code_diff import CommitResponse, CodeDiffResponse, PullRequestChangesResponse
 
 __all__ = [
     "UserRegister",
@@ -21,4 +22,7 @@ __all__ = [
     "JobResponse",
     "IssueAnalysisResponse",
     "ActionRecommendationResponse",
+    "CommitResponse",
+    "CodeDiffResponse",
+    "PullRequestChangesResponse",
 ]

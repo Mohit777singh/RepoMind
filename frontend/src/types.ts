@@ -136,3 +136,43 @@ export interface IssueAnalysis {
   recommendations: ActionRecommendation[];
 }
 
+export interface Commit {
+  id: number;
+  repository_id: number;
+  pull_request_id: number | null;
+  sha: string;
+  message: string;
+  author_name: string | null;
+  author_email: string | null;
+  committed_at: string | null;
+  html_url: string | null;
+  created_at: string;
+}
+
+export interface CodeDiff {
+  id: number;
+  repository_id: number;
+  pull_request_id: number;
+  commit_sha: string | null;
+  filename: string;
+  previous_filename: string | null;
+  status: "added" | "modified" | "removed" | "renamed" | string;
+  additions: number;
+  deletions: number;
+  changes_count: number;
+  diff_content: string | null;
+  raw_url: string | null;
+  created_at: string;
+}
+
+export interface PullRequestChanges {
+  pr_id: number;
+  pr_number: number;
+  total_commits: number;
+  total_files_changed: number;
+  total_additions: number;
+  total_deletions: number;
+  commits: Commit[];
+  files: CodeDiff[];
+}
+

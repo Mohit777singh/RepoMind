@@ -138,3 +138,67 @@ def test_get_single_pull_request_details(client, auth_headers, repo_with_prs, db
     # 404
     res_404 = client.get("/api/pulls/99999", headers=auth_headers)
     assert res_404.status_code == 404
+
+def test_get_pull_request_commits_and_diffs(client, auth_headers, repo_with_prs, db_session):
+    from app.models.commit import Commit
+    from app.models.code_diff import CodeDiff
+
+    pr = db_session.query(PullRequest).filter(PullRequest.repository_id == repo_with_prs.id).first()
+    now = datetime.now(timezone.utc)
+
+    # Insert commit
+    commit = Commit(
+        repository_id=repo_with_prs.id,
+        pull_request_id=pr.id,
+        sha="abcdef1234567890abcdef1234567890abcdef12",
+        message="Fix connection leak in pool",
+        author_name="Alice Dev",
+        author_email="alice@example.com",
+        committed_at=now,
+        html_url="https://github.com/org/pr-testing/commit/abcdef12",
+    )
+    db_session.add(commit)
+
+    # Insert code diff
+    diff = CodeDiff(
+        repository_id=repo_with_prs.id,
+        pull_request_id=pr.id,
+        commit_sha=commit.sha,
+        filename="src/connection.py",
+        status="modified",
+        additions=15,
+        deletions=3,
+        changes_count=18,
+        diff_content="@@ -10,3 +10,15 @@ def connect():\n+    pool.close()",
+    )
+    db_session.add(diff)
+    db_session.commit()
+
+    # 1. Test commits endpoint
+    res_commits = client.get(f"/api/pulls/{pr.id}/commits", headers=auth_headers)
+    assert res_commits.status_code == 200
+    commits_data = res_commits.json()
+    assert len(commits_data) == 1
+    assert commits_data[0]["sha"] == commit.sha
+    assert commits_data[0]["message"] == "Fix connection leak in pool"
+
+    # 2. Test diffs endpoint
+    res_diffs = client.get(f"/api/pulls/{pr.id}/diffs", headers=auth_headers)
+    assert res_diffs.status_code == 200
+    diffs_data = res_diffs.json()
+    assert len(diffs_data) == 1
+    assert diffs_data[0]["filename"] == "src/connection.py"
+    assert diffs_data[0]["additions"] == 15
+    assert diffs_data[0]["deletions"] == 3
+
+    # 3. Test changes summary endpoint
+    res_changes = client.get(f"/api/pulls/{pr.id}/changes?auto_sync=false", headers=auth_headers)
+    assert res_changes.status_code == 200
+    changes_data = res_changes.json()
+    assert changes_data["pr_id"] == pr.id
+    assert changes_data["total_commits"] == 1
+    assert changes_data["total_files_changed"] == 1
+    assert changes_data["total_additions"] == 15
+    assert changes_data["total_deletions"] == 3
+    assert len(changes_data["commits"]) == 1
+    assert len(changes_data["files"]) == 1

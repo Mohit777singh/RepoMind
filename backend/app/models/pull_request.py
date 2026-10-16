@@ -51,4 +51,16 @@ class PullRequest(Base):
     )
     closed_at = Column(DateTime(timezone=True), nullable=True)
 
-    repository = relationship("Repository", backref="pull_requests")
+    repository = relationship("Repository", back_populates="pull_requests")
+    commits = relationship(
+        "Commit",
+        back_populates="pull_request",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    code_diffs = relationship(
+        "CodeDiff",
+        back_populates="pull_request",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )

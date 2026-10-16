@@ -133,3 +133,71 @@ class GitHubClient:
                     break
 
         return pulls
+
+    async def get_pull_request_commits(
+        self,
+        owner: str,
+        repo: str,
+        pull_number: int,
+        max_pages: int = 1,
+        per_page: int = 50,
+    ) -> list[dict[str, Any]]:
+        """
+        Retrieves commits associated with a specific pull request.
+        """
+        commits: list[dict[str, Any]] = []
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            for page in range(1, max_pages + 1):
+                url = f"{self.BASE_URL}/repos/{owner}/{repo}/pulls/{pull_number}/commits"
+                params = {"per_page": per_page, "page": page}
+                response = await client.get(url, headers=self.headers, params=params)
+                if response.is_error:
+                    self._handle_response_error(
+                        response, f"{owner}/{repo} PR #{pull_number} commits (page {page})"
+                    )
+
+                page_data = response.json()
+                if not isinstance(page_data, list) or len(page_data) == 0:
+                    break
+
+                for item in page_data:
+                    commits.append(item)
+
+                if len(page_data) < per_page:
+                    break
+
+        return commits
+
+    async def get_pull_request_files(
+        self,
+        owner: str,
+        repo: str,
+        pull_number: int,
+        max_pages: int = 2,
+        per_page: int = 50,
+    ) -> list[dict[str, Any]]:
+        """
+        Retrieves changed files and code diff patches for a specific pull request.
+        """
+        files: list[dict[str, Any]] = []
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            for page in range(1, max_pages + 1):
+                url = f"{self.BASE_URL}/repos/{owner}/{repo}/pulls/{pull_number}/files"
+                params = {"per_page": per_page, "page": page}
+                response = await client.get(url, headers=self.headers, params=params)
+                if response.is_error:
+                    self._handle_response_error(
+                        response, f"{owner}/{repo} PR #{pull_number} files (page {page})"
+                    )
+
+                page_data = response.json()
+                if not isinstance(page_data, list) or len(page_data) == 0:
+                    break
+
+                for item in page_data:
+                    files.append(item)
+
+                if len(page_data) < per_page:
+                    break
+
+        return files
