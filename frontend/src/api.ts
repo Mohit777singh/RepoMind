@@ -3,6 +3,7 @@ import {
   IngestAcceptedResponse,
   IngestionJob,
   Issue,
+  IssueAnalysis,
   PaginatedIssues,
   Repository,
   User,
@@ -153,3 +154,26 @@ export async function apiGetRepositoryLabels(repoId: number): Promise<string[]> 
 export async function apiGetIssueDetails(issueId: number): Promise<Issue> {
   return request<Issue>(`/issues/${issueId}`);
 }
+
+// Issue Intelligence & Debugging (Evaluation 2)
+export async function apiDiagnoseIssue(issueId: number): Promise<IssueAnalysis> {
+  return request<IssueAnalysis>(`/issues/${issueId}/diagnose`, {
+    method: "POST",
+  });
+}
+
+export async function apiGetIssueAnalysis(issueId: number): Promise<IssueAnalysis> {
+  return request<IssueAnalysis>(`/issues/${issueId}/analysis`);
+}
+
+export async function apiTriageAllRepoIssues(
+  repoId: number
+): Promise<{ message: string; total_analyzed: number }> {
+  return request<{ message: string; total_analyzed: number }>(
+    `/repositories/${repoId}/triage-all`,
+    {
+      method: "POST",
+    }
+  );
+}
+

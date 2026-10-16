@@ -77,3 +77,31 @@ export interface IngestAcceptedResponse {
   status: string;
   repository_name: string;
 }
+
+export interface ActionRecommendation {
+  id: number;
+  issue_id: number;
+  action_type: string;
+  action_title: string;
+  rationale: string;
+  severity: "critical" | "warning" | "info" | string;
+  created_at: string;
+}
+
+export interface IssueAnalysis {
+  id: number;
+  issue_id: number;
+  category: "bug" | "feature_request" | "improvement" | "question" | "documentation" | string;
+  priority: "P0_CRITICAL" | "P1_HIGH" | "P2_MEDIUM" | "P3_LOW" | string;
+  confidence: number;
+  model_version: string;
+  root_cause_hypothesis: string | null;
+  error_type: string | null;
+  stack_trace_detected: boolean;
+  reproduction_steps_detected: boolean;
+  extracted_stack_trace: string | null;
+  affected_components: string[];
+  analyzed_at: string;
+  recommendations: ActionRecommendation[];
+}
+

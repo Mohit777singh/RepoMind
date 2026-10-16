@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   apiGetRepositoryIssues,
   apiGetRepositoryLabels,
+  apiTriageAllRepoIssues,
 } from "../api";
 import { Issue, PaginatedIssues, Repository } from "../types";
 import {
@@ -11,8 +12,10 @@ import {
   ChevronRight,
   ExternalLink,
   Filter,
+  Loader2,
   MessageSquare,
   Search,
+  Sparkles,
   Tag,
   X,
 } from "lucide-react";
@@ -38,6 +41,8 @@ export const IssueExplorer: React.FC<IssueExplorerProps> = ({
   const [labels, setLabels] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [triagingAll, setTriagingAll] = useState(false);
+  const [triageMessage, setTriageMessage] = useState<string | null>(null);
 
   // Filters state
   const [page, setPage] = useState(1);
@@ -45,6 +50,20 @@ export const IssueExplorer: React.FC<IssueExplorerProps> = ({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedLabel, setSelectedLabel] = useState<string>("all");
   const [titleSearch, setTitleSearch] = useState<string>("");
+
+  const handleBatchTriage = async () => {
+    setTriagingAll(true);
+    setTriageMessage(null);
+    try {
+      const res = await apiTriageAllRepoIssues(repository.id);
+      setTriageMessage(res.message);
+      setTimeout(() => setTriageMessage(null), 5000);
+    } catch (err: any) {
+      setError(err.message || "Failed to batch triage repository issues.");
+    } finally {
+      setTriagingAll(false);
+    }
+  };
 
   // Load repository labels on mount
   useEffect(() => {
@@ -149,7 +168,7 @@ export const IssueExplorer: React.FC<IssueExplorerProps> = ({
           )}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem", fontSize: "0.85rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem", fontSize: "0.85rem", flexWrap: "wrap" }}>
           <span style={{ color: "var(--text-secondary)" }}>
             Total Stored: <strong style={{ color: "var(--text-primary)" }}>{issuesData.total}</strong>
           </span>
@@ -158,6 +177,28 @@ export const IssueExplorer: React.FC<IssueExplorerProps> = ({
               {repository.language}
             </span>
           )}
+
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={handleBatchTriage}
+            disabled={triagingAll || issuesData.total === 0}
+            style={{
+              borderColor: "rgba(59, 130, 246, 0.5)",
+              color: "#93c5fd",
+            }}
+          >
+            {triagingAll ? (
+              <>
+                <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />
+                <span>Triaging Repo...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles size={14} color="#a78bfa" />
+                <span>Run Batch AI Triage</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
@@ -285,6 +326,14 @@ export const IssueExplorer: React.FC<IssueExplorerProps> = ({
           </select>
         </div>
       </div>
+
+      {/* Triage feedback message */}
+      {triageMessage && (
+        <div className="alert alert-success">
+          <Sparkles size={18} style={{ flexShrink: 0 }} />
+          <div>{triageMessage}</div>
+        </div>
+      )}
 
       {/* Error alert */}
       {error && (
