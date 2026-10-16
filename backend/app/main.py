@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import settings
 from app.database import Base, engine
 import app.models  # noqa: F401
-from app.routers import analysis, auth, issues, jobs, repositories
+from app.routers import analysis, auth, issues, jobs, pull_requests, repositories
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -62,6 +62,7 @@ api_router.include_router(repositories.router)
 api_router.include_router(issues.router)
 api_router.include_router(jobs.router)
 api_router.include_router(analysis.router)
+api_router.include_router(pull_requests.router)
 
 app.include_router(api_router)
 

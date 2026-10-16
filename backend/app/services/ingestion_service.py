@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models.ingestion_job import IngestionJob
 from app.models.issue import Issue
+from app.models.pull_request import PullRequest
 from app.models.repository import Repository
 from app.services.github_client import (
     GitHubAPIError,
@@ -152,6 +153,73 @@ class IngestionService:
                     )
                     db.add(new_issue)
                 ingested_count += 1
+
+            # 3. Fetch Pull Requests (up to 2 pages, state=all)
+            try:
+                raw_prs = await self.github_client.get_pull_requests(owner, repo, max_pages=2, per_page=50)
+                for pr_item in raw_prs:
+                    github_pr_id = pr_item["id"]
+                    existing_pr = (
+                        db.query(PullRequest)
+                        .filter(
+                            PullRequest.repository_id == repository.id,
+                            PullRequest.github_pr_id == github_pr_id,
+                        )
+                        .first()
+                    )
+
+                    pr_labels = []
+                    for label in pr_item.get("labels", []):
+                        if isinstance(label, dict):
+                            pr_labels.append({
+                                "name": label.get("name"),
+                                "color": label.get("color"),
+                                "description": label.get("description"),
+                            })
+                        elif isinstance(label, str):
+                            pr_labels.append({"name": label, "color": "6e7681"})
+
+                    pr_author = pr_item.get("user", {}).get("login") if pr_item.get("user") else None
+                    pr_created_at = parse_iso_datetime(pr_item.get("created_at")) or now_utc
+                    pr_updated_at = parse_iso_datetime(pr_item.get("updated_at")) or now_utc
+                    pr_closed_at = parse_iso_datetime(pr_item.get("closed_at"))
+                    pr_merged_at = parse_iso_datetime(pr_item.get("merged_at"))
+                    is_merged = pr_merged_at is not None
+                    pr_state = "merged" if is_merged else pr_item.get("state", "open")
+
+                    if existing_pr:
+                        existing_pr.title = pr_item.get("title", "")
+                        existing_pr.body = pr_item.get("body")
+                        existing_pr.state = pr_state
+                        existing_pr.is_merged = is_merged
+                        existing_pr.merged_at = pr_merged_at
+                        existing_pr.author = pr_author
+                        existing_pr.labels = pr_labels
+                        existing_pr.html_url = pr_item.get("html_url", "")
+                        existing_pr.diff_url = pr_item.get("diff_url")
+                        existing_pr.updated_at = pr_updated_at
+                        existing_pr.closed_at = pr_closed_at
+                    else:
+                        new_pr = PullRequest(
+                            repository_id=repository.id,
+                            github_pr_id=github_pr_id,
+                            pr_number=pr_item.get("number", 0),
+                            title=pr_item.get("title", ""),
+                            body=pr_item.get("body"),
+                            state=pr_state,
+                            is_merged=is_merged,
+                            merged_at=pr_merged_at,
+                            author=pr_author,
+                            labels=pr_labels,
+                            html_url=pr_item.get("html_url", ""),
+                            diff_url=pr_item.get("diff_url"),
+                            created_at=pr_created_at,
+                            updated_at=pr_updated_at,
+                            closed_at=pr_closed_at,
+                        )
+                        db.add(new_pr)
+            except Exception as pr_err:
+                logger.warning(f"Could not ingest pull requests for {owner}/{repo}: {pr_err}")
 
             # Update job record to completed
             job.status = "completed"

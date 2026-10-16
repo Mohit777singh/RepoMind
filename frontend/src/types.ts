@@ -60,6 +60,33 @@ export interface PaginatedIssues {
   total_pages: number;
 }
 
+export interface PullRequest {
+  id: number;
+  repository_id: number;
+  github_pr_id: number;
+  pr_number: number;
+  title: string;
+  body: string | null;
+  state: "open" | "closed" | "merged" | string;
+  is_merged: boolean;
+  merged_at: string | null;
+  author: string | null;
+  labels: (IssueLabel | string)[];
+  html_url: string;
+  diff_url: string | null;
+  created_at: string;
+  updated_at: string;
+  closed_at: string | null;
+}
+
+export interface PaginatedPullRequests {
+  items: PullRequest[];
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
+}
+
 export interface IngestionJob {
   id: number;
   repository_id: number | null;

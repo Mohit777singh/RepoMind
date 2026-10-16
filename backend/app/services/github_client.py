@@ -96,3 +96,40 @@ class GitHubClient:
                     break
 
         return issues
+
+    async def get_pull_requests(
+        self,
+        owner: str,
+        repo: str,
+        max_pages: int = 2,
+        per_page: int = 50,
+    ) -> list[dict[str, Any]]:
+        """
+        Retrieves pull requests for the repository (both open, closed, and merged).
+        """
+        pulls: list[dict[str, Any]] = []
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            for page in range(1, max_pages + 1):
+                url = f"{self.BASE_URL}/repos/{owner}/{repo}/pulls"
+                params = {
+                    "state": "all",
+                    "per_page": per_page,
+                    "page": page,
+                    "sort": "created",
+                    "direction": "desc",
+                }
+                response = await client.get(url, headers=self.headers, params=params)
+                if response.is_error:
+                    self._handle_response_error(response, f"{owner}/{repo} PRs (page {page})")
+
+                page_data = response.json()
+                if not isinstance(page_data, list) or len(page_data) == 0:
+                    break
+
+                for item in page_data:
+                    pulls.append(item)
+
+                if len(page_data) < per_page:
+                    break
+
+        return pulls

@@ -5,6 +5,8 @@ import {
   Issue,
   IssueAnalysis,
   PaginatedIssues,
+  PaginatedPullRequests,
+  PullRequest,
   Repository,
   User,
 } from "./types";
@@ -176,4 +178,28 @@ export async function apiTriageAllRepoIssues(
     }
   );
 }
+
+// Pull Requests (Evaluation 2 Extended Ingestion)
+export async function apiGetRepositoryPullRequests(
+  repoId: number,
+  params: {
+    page?: number;
+    per_page?: number;
+    status?: string;
+    title?: string;
+  }
+): Promise<PaginatedPullRequests> {
+  const query = new URLSearchParams();
+  if (params.page) query.append("page", params.page.toString());
+  if (params.per_page) query.append("per_page", params.per_page.toString());
+  if (params.status && params.status !== "all") query.append("status", params.status);
+  if (params.title && params.title.trim()) query.append("title", params.title.trim());
+
+  return request<PaginatedPullRequests>(`/repositories/${repoId}/pulls?${query.toString()}`);
+}
+
+export async function apiGetPullRequestDetails(prId: number): Promise<PullRequest> {
+  return request<PullRequest>(`/pulls/${prId}`);
+}
+
 

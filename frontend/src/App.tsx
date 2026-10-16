@@ -169,6 +169,7 @@ export const App: React.FC = () => {
               loadRepositories();
             }}
             onSelectIssue={(issue) => setSelectedIssue(issue)}
+            onSyncRepo={() => handleSyncRepo(selectedRepo)}
           />
         ) : (
           <RepositoryList

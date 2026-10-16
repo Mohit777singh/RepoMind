@@ -2,16 +2,20 @@ import React, { useEffect, useState } from "react";
 import {
   apiGetRepositoryIssues,
   apiGetRepositoryLabels,
+  apiGetRepositoryPullRequests,
   apiTriageAllRepoIssues,
 } from "../api";
 import { Issue, PaginatedIssues, Repository } from "../types";
+import { PullRequestExplorer } from "./PullRequestExplorer";
 import {
   AlertCircle,
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
+  CircleDot,
   ExternalLink,
   Filter,
+  GitPullRequest,
   Loader2,
   MessageSquare,
   Search,
@@ -24,13 +28,17 @@ interface IssueExplorerProps {
   repository: Repository;
   onBack: () => void;
   onSelectIssue: (issue: Issue) => void;
+  onSyncRepo?: () => void;
 }
 
 export const IssueExplorer: React.FC<IssueExplorerProps> = ({
   repository,
   onBack,
   onSelectIssue,
+  onSyncRepo,
 }) => {
+  const [activeTab, setActiveTab] = useState<"issues" | "pulls">("issues");
+  const [prCount, setPrCount] = useState<number | null>(null);
   const [issuesData, setIssuesData] = useState<PaginatedIssues>({
     items: [],
     total: 0,
@@ -76,6 +84,19 @@ export const IssueExplorer: React.FC<IssueExplorerProps> = ({
       }
     }
     loadLabels();
+  }, [repository.id]);
+
+  // Load repository PR count on mount
+  useEffect(() => {
+    async function loadPrCount() {
+      try {
+        const prs = await apiGetRepositoryPullRequests(repository.id, { page: 1, per_page: 1 });
+        setPrCount(prs.total);
+      } catch (err) {
+        console.warn("Could not load repo PR count:", err);
+      }
+    }
+    loadPrCount();
   }, [repository.id]);
 
   // Load issues whenever filter/pagination changes
@@ -202,9 +223,71 @@ export const IssueExplorer: React.FC<IssueExplorerProps> = ({
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div
-        className="card"
+      {/* View Tabs: Issues vs Pull Requests */}
+      <div className="tabs-nav">
+        <button
+          className={`tab-btn ${activeTab === "issues" ? "active" : ""}`}
+          onClick={() => setActiveTab("issues")}
+        >
+          <CircleDot size={16} />
+          <span>Issues</span>
+          <span
+            className="badge badge-label"
+            style={{
+              marginLeft: "0.35rem",
+              fontSize: "0.7rem",
+              backgroundColor:
+                activeTab === "issues"
+                  ? "rgba(59, 130, 246, 0.2)"
+                  : "var(--bg-card)",
+              color:
+                activeTab === "issues" ? "#93c5fd" : "var(--text-secondary)",
+            }}
+          >
+            {issuesData.total}
+          </span>
+        </button>
+
+        <button
+          className={`tab-btn ${activeTab === "pulls" ? "active" : ""}`}
+          onClick={() => setActiveTab("pulls")}
+        >
+          <GitPullRequest size={16} />
+          <span>Pull Requests</span>
+          {prCount !== null && (
+            <span
+              className="badge badge-label"
+              style={{
+                marginLeft: "0.35rem",
+                fontSize: "0.7rem",
+                backgroundColor:
+                  activeTab === "pulls"
+                    ? "rgba(168, 85, 247, 0.2)"
+                    : "var(--bg-card)",
+                color:
+                  activeTab === "pulls" ? "#c084fc" : "var(--text-secondary)",
+              }}
+            >
+              {prCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Pull Requests Explorer Tab */}
+      {activeTab === "pulls" && (
+        <PullRequestExplorer
+          repository={repository}
+          onSyncRepo={onSyncRepo}
+        />
+      )}
+
+      {/* Issues Explorer Tab */}
+      {activeTab === "issues" && (
+        <>
+          {/* Filter and Search Bar */}
+          <div
+            className="card"
         style={{
           marginBottom: "1.5rem",
           padding: "1rem 1.25rem",
@@ -516,6 +599,8 @@ export const IssueExplorer: React.FC<IssueExplorerProps> = ({
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );
