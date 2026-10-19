@@ -201,3 +201,40 @@ class GitHubClient:
                     break
 
         return files
+
+    async def get_repository_tree(
+        self, owner: str, repo: str, default_branch: str = "main"
+    ) -> list[dict[str, Any]]:
+        """
+        Retrieves the repository tree recursively using the GitHub Git Trees API.
+        """
+        async with httpx.AsyncClient(timeout=25.0) as client:
+            url = f"{self.BASE_URL}/repos/{owner}/{repo}/git/trees/{default_branch}?recursive=1"
+            response = await client.get(url, headers=self.headers)
+            if response.status_code == 404 and default_branch == "main":
+                # Fallback to master
+                url_master = f"{self.BASE_URL}/repos/{owner}/{repo}/git/trees/master?recursive=1"
+                response = await client.get(url_master, headers=self.headers)
+
+            if response.is_error:
+                self._handle_response_error(response, f"{owner}/{repo} tree")
+
+            data = response.json()
+            return data.get("tree", [])
+
+    async def get_file_content(
+        self, owner: str, repo: str, path: str, ref: str = "HEAD"
+    ) -> str | None:
+        """
+        Fetches the raw text content of a single repository file.
+        """
+        raw_url = f"https://raw.githubusercontent.com/{owner}/{repo}/{ref}/{path}"
+        headers = {}
+        if self.token:
+            headers["Authorization"] = f"token {self.token}"
+
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.get(raw_url, headers=headers)
+            if response.status_code == 200:
+                return response.text
+            return None

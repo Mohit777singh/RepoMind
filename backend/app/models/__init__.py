@@ -8,6 +8,8 @@ from app.models.issue_analysis import IssueAnalysis
 from app.models.action_recommendation import ActionRecommendation
 from app.models.commit import Commit
 from app.models.code_diff import CodeDiff
+from app.models.code_chunk import CodeChunk
+from app.models.code_index_status import CodeIndexStatus
 
 __all__ = [
     "Base",
@@ -20,4 +22,6 @@ __all__ = [
     "ActionRecommendation",
     "Commit",
     "CodeDiff",
+    "CodeChunk",
+    "CodeIndexStatus",
 ]

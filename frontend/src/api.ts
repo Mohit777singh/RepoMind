@@ -1,5 +1,8 @@
 import {
+  AIExplanationResponse,
   AuthResponse,
+  CodeIndexStatus,
+  GlobalSearchResponse,
   IngestAcceptedResponse,
   IngestionJob,
   Issue,
@@ -9,6 +12,8 @@ import {
   PullRequest,
   PullRequestChanges,
   Repository,
+  SearchResultCodeChunk,
+  SearchResultInvestigation,
   User,
 } from "./types";
 
@@ -216,6 +221,95 @@ export async function apiGetPullRequestChanges(
 
 export async function apiSyncPullRequestDiffs(prId: number): Promise<PullRequestChanges> {
   return request<PullRequestChanges>(`/pulls/${prId}/sync-diffs`, {
+    method: "POST",
+  });
+}
+
+// Global Search (Phase 1 & Phase 2)
+export async function apiGlobalSearch(
+  query: string,
+  limit: number = 6,
+  mode: string = "all",
+  repository_id?: number,
+  signal?: AbortSignal
+): Promise<GlobalSearchResponse> {
+  const params = new URLSearchParams({
+    q: query.trim(),
+    limit: limit.toString(),
+    mode,
+  });
+  if (repository_id) {
+    params.append("repository_id", repository_id.toString());
+  }
+  return request<GlobalSearchResponse>(`/search?${params.toString()}`, { signal });
+}
+
+export async function apiSearchCode(
+  query: string,
+  limit: number = 6,
+  repository_id?: number,
+  signal?: AbortSignal
+): Promise<SearchResultCodeChunk[]> {
+  const params = new URLSearchParams({
+    q: query.trim(),
+    limit: limit.toString(),
+  });
+  if (repository_id) {
+    params.append("repository_id", repository_id.toString());
+  }
+  return request<SearchResultCodeChunk[]>(`/search/code?${params.toString()}`, { signal });
+}
+
+export async function apiSearchInvestigations(
+  query: string,
+  limit: number = 6,
+  repository_id?: number,
+  signal?: AbortSignal
+): Promise<SearchResultInvestigation[]> {
+  const params = new URLSearchParams({
+    q: query.trim(),
+    limit: limit.toString(),
+  });
+  if (repository_id) {
+    params.append("repository_id", repository_id.toString());
+  }
+  return request<SearchResultInvestigation[]>(`/search/investigations?${params.toString()}`, { signal });
+}
+
+export async function apiExplainCode(
+  query: string,
+  repository_id?: number
+): Promise<AIExplanationResponse> {
+  return request<AIExplanationResponse>("/search/explain", {
+    method: "POST",
+    body: JSON.stringify({
+      query: query.trim(),
+      repository_id: repository_id || null,
+    }),
+  });
+}
+
+// Repository Code Indexing (Phase 2)
+export async function apiGetRepoIndexStatus(repoId: number): Promise<CodeIndexStatus> {
+  return request<CodeIndexStatus>(`/repositories/${repoId}/indexing-status`);
+}
+
+export async function apiIndexRepoCode(
+  repoId: number
+): Promise<{
+  message: string;
+  repository_id: number;
+  status: string;
+  total_files_discovered: number;
+  total_chunks_indexed: number;
+}> {
+  return request<{
+    message: string;
+    repository_id: number;
+    status: string;
+    total_files_discovered: number;
+    total_chunks_indexed: number;
+  }>(`/repositories/${repoId}/index-code`, {
     method: "POST",
   });
 }

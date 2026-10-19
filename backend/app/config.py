@@ -17,6 +17,17 @@ class Settings(BaseSettings):
         "http://127.0.0.1:8000",
     ]
 
+    # Phase 2 — Semantic Code Search & AI Intelligence Settings
+    EMBEDDING_PROVIDER: str = "hybrid"  # "hybrid" (built-in, zero-dep), "openai", or "gemini"
+    OPENAI_API_KEY: str | None = None
+    OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"
+    OPENAI_CHAT_MODEL: str = "gpt-4o-mini"
+    GEMINI_API_KEY: str | None = None
+    MAX_INDEXED_FILES_PER_REPO: int = 150
+    MAX_FILE_SIZE_BYTES: int = 250000
+    CODE_CHUNK_SIZE_LINES: int = 60
+    CODE_CHUNK_OVERLAP_LINES: int = 10
+
     model_config = SettingsConfigDict(
         env_file=str(BASE_DIR / ".env"),
         env_file_encoding="utf-8",

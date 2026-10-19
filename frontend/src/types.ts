@@ -185,3 +185,109 @@ export interface PullRequestChanges {
   files: CodeDiff[];
 }
 
+// Global Search & Command Palette (Phase 1)
+export interface SearchResultRepository {
+  id: number;
+  type: "repository";
+  name: string;
+  owner: string;
+  full_name: string;
+  description: string | null;
+  language: string | null;
+  stargazers_count: number;
+  open_issues_count: number;
+}
+
+export interface SearchResultIssue {
+  id: number;
+  type: "issue";
+  repository_id: number;
+  repository_name: string;
+  issue_number: number;
+  title: string;
+  state: string;
+  comments_count: number;
+  labels: (IssueLabel | string | { name: string; color?: string })[];
+}
+
+export interface SearchResultPullRequest {
+  id: number;
+  type: "pull_request";
+  repository_id: number;
+  repository_name: string;
+  pr_number: number;
+  title: string;
+  state: string;
+  is_merged: boolean;
+  author: string | null;
+  created_at: string | null;
+}
+
+// Phase 2: Semantic Code Search & AI Intelligence
+export interface SearchResultCodeChunk {
+  id: number;
+  type: "code_chunk";
+  repository_id: number;
+  repository_name: string;
+  file_path: string;
+  language: string;
+  start_line: number;
+  end_line: number;
+  content: string;
+  relevance_score: number;
+}
+
+export interface SearchResultInvestigation {
+  id: number;
+  type: "investigation";
+  issue_id: number;
+  issue_number: number;
+  issue_title: string;
+  repository_id: number;
+  repository_name: string;
+  priority: string | null;
+  error_type: string;
+  root_cause_hypothesis: string;
+  fix_target_file: string | null;
+  confidence: number | null;
+  analyzed_at: string | null;
+}
+
+export interface CodeCitation {
+  file_path: string;
+  start_line: number;
+  end_line: number;
+  snippet: string;
+  relevance: number;
+}
+
+export interface AIExplanationResponse {
+  query: string;
+  answer: string;
+  evidence_sufficient: boolean;
+  citations: CodeCitation[];
+  retrieved_chunks_count: number;
+}
+
+export interface CodeIndexStatus {
+  repository_id: number;
+  status: "not_indexed" | "indexing" | "ready" | "failed" | string;
+  total_files: number;
+  indexed_chunks: number;
+  last_indexed_at: string | null;
+  error_message: string | null;
+}
+
+export type SearchMode = "all" | "code" | "investigations" | "keyword";
+
+export interface GlobalSearchResponse {
+  query: string;
+  mode?: SearchMode | string;
+  total: number;
+  repositories: SearchResultRepository[];
+  issues: SearchResultIssue[];
+  pull_requests: SearchResultPullRequest[];
+  code_chunks?: SearchResultCodeChunk[];
+  investigations?: SearchResultInvestigation[];
+}
+

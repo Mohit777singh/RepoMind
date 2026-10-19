@@ -6,7 +6,9 @@ from app.models.issue import Issue
 from app.models.repository import Repository
 from app.models.user import User
 from app.schemas.repository import RepoCreate, RepoIngestAccepted, RepoResponse
+from app.schemas.search import CodeIndexStatusResponse
 from app.security import get_current_user
+from app.services.code_indexing_service import CodeIndexingService
 from app.services.ingestion_service import IngestionService
 
 router = APIRouter(prefix="/repositories", tags=["Repositories"])
@@ -165,3 +167,35 @@ def sync_repository(
         status="pending",
         repository_name=repo.full_name,
     )
+
+@router.get("/{repo_id}/indexing-status", response_model=CodeIndexStatusResponse)
+def get_indexing_status(
+    repo_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    repo = db.query(Repository).filter(Repository.id == repo_id).first()
+    if not repo:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Repository with ID {repo_id} not found",
+        )
+    indexing_service = CodeIndexingService()
+    status_rec = indexing_service.get_or_create_status(db, repo.id)
+    return CodeIndexStatusResponse.model_validate(status_rec)
+
+@router.post("/{repo_id}/index-code", response_model=CodeIndexStatusResponse)
+async def index_repository_code(
+    repo_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    repo = db.query(Repository).filter(Repository.id == repo_id).first()
+    if not repo:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Repository with ID {repo_id} not found",
+        )
+    indexing_service = CodeIndexingService()
+    result_status = await indexing_service.index_repository_code(db, repo)
+    return CodeIndexStatusResponse.model_validate(result_status)

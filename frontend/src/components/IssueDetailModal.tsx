@@ -3,17 +3,14 @@ import { apiDiagnoseIssue, apiGetIssueAnalysis } from "../api";
 import { Issue, IssueAnalysis } from "../types";
 import {
   AlertCircle,
-  AlertTriangle,
-  Bug,
   Calendar,
   Check,
-  CheckCircle,
+  CheckCircle2,
   Code2,
   Copy,
   Cpu,
   ExternalLink,
   FileCode,
-  HelpCircle,
   Lightbulb,
   Loader2,
   MessageSquare,
@@ -24,7 +21,6 @@ import {
   User,
   Wrench,
   X,
-  Zap,
 } from "lucide-react";
 
 interface IssueDetailModalProps {
@@ -101,44 +97,45 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
   const getPriorityStyle = (priority?: string) => {
     switch (priority) {
       case "P0_CRITICAL":
-        return { backgroundColor: "rgba(239, 68, 68, 0.2)", color: "#f87171", borderColor: "#ef4444" };
+        return { backgroundColor: "rgba(239, 68, 68, 0.15)", color: "#f87171", borderColor: "rgba(239, 68, 68, 0.4)" };
       case "P1_HIGH":
-        return { backgroundColor: "rgba(245, 158, 11, 0.2)", color: "#fbbf24", borderColor: "#f59e0b" };
+        return { backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#fbbf24", borderColor: "rgba(245, 158, 11, 0.4)" };
       case "P2_MEDIUM":
-        return { backgroundColor: "rgba(59, 130, 246, 0.2)", color: "#60a5fa", borderColor: "#3b82f6" };
+        return { backgroundColor: "rgba(99, 102, 241, 0.15)", color: "#a5b4fc", borderColor: "rgba(99, 102, 241, 0.4)" };
       default:
-        return { backgroundColor: "rgba(107, 114, 128, 0.2)", color: "#9ca3af", borderColor: "#6b7280" };
+        return { backgroundColor: "rgba(107, 114, 128, 0.15)", color: "#9ca3af", borderColor: "rgba(107, 114, 128, 0.4)" };
     }
   };
 
   const renderDiffLine = (line: string, idx: number) => {
-    let color = "#d1d5db";
+    let color = "#cbd5e1";
     let bg = "transparent";
 
     if (line.startsWith("+") && !line.startsWith("+++")) {
-      color = "#34d399";
-      bg = "rgba(16, 185, 129, 0.15)";
+      color = "#6ee7b7";
+      bg = "rgba(16, 185, 129, 0.14)";
     } else if (line.startsWith("-") && !line.startsWith("---")) {
-      color = "#f87171";
-      bg = "rgba(239, 68, 68, 0.15)";
+      color = "#fca5a5";
+      bg = "rgba(239, 68, 68, 0.14)";
     } else if (line.startsWith("@@")) {
-      color = "#60a5fa";
-      bg = "rgba(59, 130, 246, 0.1)";
+      color = "#93c5fd";
+      bg = "rgba(59, 130, 246, 0.12)";
     } else if (line.startsWith("---") || line.startsWith("+++")) {
-      color = "#a78bfa";
-      bg = "rgba(139, 92, 246, 0.1)";
+      color = "#c084fc";
+      bg = "rgba(168, 85, 247, 0.12)";
     }
 
     return (
       <div
         key={idx}
         style={{
-          padding: "2px 8px",
+          padding: "2px 10px",
           backgroundColor: bg,
           color: color,
           fontFamily: "var(--font-mono)",
-          fontSize: "0.825rem",
-          whiteSpace: "pre",
+          fontSize: "0.8125rem",
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-all",
           lineHeight: 1.5,
         }}
       >
@@ -152,12 +149,19 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
       <div
         className="modal-content"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: "860px", width: "95%", maxHeight: "90vh", display: "flex", flexDirection: "column" }}
+        style={{
+          maxWidth: "880px",
+          width: "95%",
+          maxHeight: "90vh",
+          display: "flex",
+          flexDirection: "column",
+          padding: "1.75rem",
+        }}
       >
         {/* Modal Header */}
         <div className="modal-header" style={{ alignItems: "flex-start", gap: "1rem", flexShrink: 0 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem", flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.45rem", flexWrap: "wrap" }}>
               <span
                 className={`badge ${
                   issue.state.toLowerCase() === "open" ? "badge-open" : "badge-closed"
@@ -165,11 +169,13 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
               >
                 {issue.state.toUpperCase()}
               </span>
+
               <span
                 style={{
                   fontFamily: "var(--font-mono)",
                   color: "var(--text-muted)",
-                  fontSize: "0.9rem",
+                  fontSize: "0.85rem",
+                  fontWeight: 600,
                 }}
               >
                 #{issue.issue_number}
@@ -181,13 +187,13 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
                   <span
                     className="badge"
                     style={{
-                      background: "linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2))",
-                      color: "#93c5fd",
-                      border: "1px solid rgba(139, 92, 246, 0.4)",
+                      backgroundColor: "rgba(99, 102, 241, 0.14)",
+                      color: "#a5b4fc",
+                      border: "1px solid rgba(99, 102, 241, 0.35)",
                       textTransform: "capitalize",
                     }}
                   >
-                    <Sparkles size={12} color="#a78bfa" />
+                    <Sparkles size={11} color="#818cf8" />
                     {analysis.category.replace("_", " ")} ({Math.round(analysis.confidence * 100)}%)
                   </span>
                   <span
@@ -200,22 +206,23 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
               )}
             </div>
 
-            <h2 className="modal-title" style={{ fontSize: "1.35rem", lineHeight: 1.3 }}>
+            <h2 className="modal-title" style={{ fontSize: "1.25rem", lineHeight: 1.4, wordBreak: "break-word" }}>
               {issue.title}
             </h2>
           </div>
-          <button className="close-btn" onClick={onClose}>
-            <X size={20} />
+
+          <button className="close-btn" onClick={onClose} aria-label="Close dialog">
+            <X size={18} />
           </button>
         </div>
 
-        {/* Tab Switcher */}
+        {/* Tab Navigation */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             gap: "0.5rem",
-            borderBottom: "1px solid var(--border-color)",
+            borderBottom: "1px solid var(--border-subtle)",
             paddingBottom: "0.5rem",
             marginBottom: "1.25rem",
             flexShrink: 0,
@@ -226,17 +233,18 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
           <button
             onClick={() => setActiveTab("details")}
             style={{
-              padding: "0.5rem 1rem",
-              background: activeTab === "details" ? "var(--bg-card)" : "transparent",
+              padding: "0.45rem 0.9rem",
+              background: activeTab === "details" ? "var(--bg-elevated)" : "transparent",
               color: activeTab === "details" ? "var(--text-primary)" : "var(--text-secondary)",
               border: activeTab === "details" ? "1px solid var(--border-color)" : "1px solid transparent",
-              borderRadius: "6px",
+              borderRadius: "var(--radius-sm)",
               cursor: "pointer",
               fontWeight: 500,
-              fontSize: "0.875rem",
+              fontSize: "0.825rem",
               display: "flex",
               alignItems: "center",
               gap: "0.4rem",
+              transition: "all var(--transition-fast)",
             }}
           >
             <span>Issue Details</span>
@@ -246,32 +254,40 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
           <button
             onClick={() => setActiveTab("diagnosis")}
             style={{
-              padding: "0.5rem 1rem",
-              background: activeTab === "diagnosis" ? "linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(139, 92, 246, 0.25))" : "transparent",
+              padding: "0.45rem 0.9rem",
+              background:
+                activeTab === "diagnosis"
+                  ? "linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2))"
+                  : "transparent",
               color: activeTab === "diagnosis" ? "#ffffff" : "var(--text-secondary)",
-              border: activeTab === "diagnosis" ? "1px solid #3b82f6" : "1px solid transparent",
-              borderRadius: "6px",
+              border:
+                activeTab === "diagnosis"
+                  ? "1px solid rgba(99, 102, 241, 0.5)"
+                  : "1px solid transparent",
+              borderRadius: "var(--radius-sm)",
               cursor: "pointer",
               fontWeight: 600,
-              fontSize: "0.875rem",
+              fontSize: "0.825rem",
               display: "flex",
               alignItems: "center",
               gap: "0.4rem",
+              transition: "all var(--transition-fast)",
             }}
           >
-            <Cpu size={15} color="#3b82f6" />
-            <span>AI Debug & Diagnostic Inspector</span>
+            <Cpu size={14} color="#818cf8" />
+            <span>AI Diagnostic Inspector</span>
             {analysis && (
               <span
                 style={{
-                  fontSize: "0.7rem",
-                  padding: "1px 5px",
-                  borderRadius: "10px",
-                  backgroundColor: "#3b82f6",
+                  fontSize: "0.675rem",
+                  padding: "1px 6px",
+                  borderRadius: "var(--radius-full)",
+                  backgroundColor: "#6366f1",
                   color: "#ffffff",
+                  fontWeight: 700,
                 }}
               >
-                Diagnosed
+                Ready
               </span>
             )}
           </button>
@@ -280,32 +296,40 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
           <button
             onClick={() => setActiveTab("solution")}
             style={{
-              padding: "0.5rem 1rem",
-              background: activeTab === "solution" ? "linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(59, 130, 246, 0.25))" : "transparent",
+              padding: "0.45rem 0.9rem",
+              background:
+                activeTab === "solution"
+                  ? "linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(99, 102, 241, 0.2))"
+                  : "transparent",
               color: activeTab === "solution" ? "#ffffff" : "var(--text-secondary)",
-              border: activeTab === "solution" ? "1px solid #10b981" : "1px solid transparent",
-              borderRadius: "6px",
+              border:
+                activeTab === "solution"
+                  ? "1px solid rgba(16, 185, 129, 0.5)"
+                  : "1px solid transparent",
+              borderRadius: "var(--radius-sm)",
               cursor: "pointer",
               fontWeight: 600,
-              fontSize: "0.875rem",
+              fontSize: "0.825rem",
               display: "flex",
               alignItems: "center",
               gap: "0.4rem",
+              transition: "all var(--transition-fast)",
             }}
           >
-            <Wrench size={15} color="#10b981" />
+            <Wrench size={14} color="#34d399" />
             <span>Proposed Code Solution</span>
             {analysis?.proposed_code_patch && (
               <span
                 style={{
-                  fontSize: "0.7rem",
-                  padding: "1px 5px",
-                  borderRadius: "10px",
+                  fontSize: "0.675rem",
+                  padding: "1px 6px",
+                  borderRadius: "var(--radius-full)",
                   backgroundColor: "#10b981",
                   color: "#ffffff",
+                  fontWeight: 700,
                 }}
               >
-                Patch Ready
+                Patch
               </span>
             )}
           </button>
@@ -323,26 +347,28 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
                   gap: "1.25rem",
                   flexWrap: "wrap",
                   padding: "0.75rem 1rem",
-                  backgroundColor: "var(--bg-card)",
+                  backgroundColor: "rgba(255, 255, 255, 0.03)",
                   borderRadius: "var(--radius-sm)",
-                  border: "1px solid var(--border-color)",
+                  border: "1px solid var(--border-subtle)",
                   marginBottom: "1.25rem",
-                  fontSize: "0.825rem",
+                  fontSize: "0.8125rem",
                   color: "var(--text-secondary)",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-                  <User size={14} color="var(--accent-primary)" />
-                  <span>Author: <strong style={{ color: "var(--text-primary)" }}>{issue.author || "Unknown"}</strong></span>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <User size={14} color="#818cf8" />
+                  <span>
+                    Author: <strong style={{ color: "var(--text-primary)" }}>{issue.author || "Unknown"}</strong>
+                  </span>
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-                  <Calendar size={14} />
-                  <span>Created: {new Date(issue.created_at).toLocaleString()}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Calendar size={14} color="var(--text-muted)" />
+                  <span>{new Date(issue.created_at).toLocaleString()}</span>
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-                  <MessageSquare size={14} />
+                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <MessageSquare size={14} color="var(--text-muted)" />
                   <span>{issue.comments_count} Comments</span>
                 </div>
 
@@ -360,7 +386,7 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
                     fontWeight: 500,
                   }}
                 >
-                  <span>GitHub</span>
+                  <span>View on GitHub</span>
                   <ExternalLink size={13} />
                 </a>
               </div>
@@ -368,9 +394,21 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
               {/* Labels Section */}
               {issue.labels && issue.labels.length > 0 && (
                 <div style={{ marginBottom: "1.25rem" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", marginBottom: "0.5rem", fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                    <Tag size={13} />
-                    <span>LABELS</span>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.35rem",
+                      marginBottom: "0.5rem",
+                      fontSize: "0.75rem",
+                      fontWeight: 600,
+                      color: "var(--text-muted)",
+                      letterSpacing: "0.04em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    <Tag size={12} />
+                    <span>Labels</span>
                   </div>
                   <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
                     {issue.labels.map((lbl, idx) => {
@@ -381,9 +419,9 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
                           key={idx}
                           className="badge badge-label"
                           style={{
-                            backgroundColor: `#${color}25`,
+                            backgroundColor: `#${color}18`,
                             color: `#${color}`,
-                            borderColor: `#${color}60`,
+                            borderColor: `#${color}40`,
                           }}
                         >
                           {name}
@@ -394,298 +432,272 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
                 </div>
               )}
 
-              {/* Issue Body */}
+              {/* Issue Description Body */}
               <div>
-                <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "0.5rem", fontWeight: 600 }}>
-                  DESCRIPTION
-                </div>
                 <div
                   style={{
-                    backgroundColor: "var(--bg-primary)",
-                    border: "1px solid var(--border-color)",
+                    fontSize: "0.75rem",
+                    color: "var(--text-muted)",
+                    marginBottom: "0.5rem",
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Description
+                </div>
+
+                <div
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.02)",
+                    border: "1px solid var(--border-subtle)",
                     borderRadius: "var(--radius-sm)",
-                    padding: "1.25rem",
-                    fontSize: "0.9rem",
-                    lineHeight: 1.6,
+                    padding: "1rem",
+                    fontSize: "0.875rem",
                     color: "var(--text-primary)",
                     whiteSpace: "pre-wrap",
                     wordBreak: "break-word",
-                    maxHeight: "380px",
+                    lineHeight: 1.6,
+                    maxHeight: "360px",
                     overflowY: "auto",
-                    fontFamily: "inherit",
                   }}
                 >
-                  {issue.body ? issue.body : <em style={{ color: "var(--text-muted)" }}>No description provided for this issue.</em>}
+                  {issue.body || "No description provided."}
                 </div>
               </div>
             </>
           ) : activeTab === "diagnosis" ? (
-            /* AI DEBUGGER & DIAGNOSTIC TAB */
             <div>
-              {/* Header Action */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
+              {/* Diagnosis Header Controls */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "1.25rem",
+                  flexWrap: "wrap",
+                  gap: "0.75rem",
+                }}
+              >
                 <div>
-                  <h3 style={{ fontSize: "1.1rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    <Zap size={18} color="#f59e0b" />
-                    <span>Automated Root Cause Diagnosis & Triage</span>
-                  </h3>
-                  <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>
-                    Analyzes failure patterns, exception signatures, reproduction steps, and suggests resolution steps.
+                  <h3 style={{ fontSize: "1.05rem", fontWeight: 700 }}>AI Root Cause & Error Inspector</h3>
+                  <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+                    Deep neural analysis of stack traces, affected subsystems, and reproduction steps
                   </p>
                 </div>
 
                 <button
-                  className="btn btn-secondary btn-sm"
+                  className="btn btn-primary btn-sm"
                   onClick={handleRunDiagnosis}
                   disabled={loadingAnalysis}
                 >
                   {loadingAnalysis ? (
-                    <Loader2 size={14} className="spinner-sm" style={{ animation: "spin 1s linear infinite" }} />
+                    <>
+                      <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} />
+                      <span>Diagnosing...</span>
+                    </>
                   ) : (
-                    <RefreshCw size={14} />
+                    <>
+                      <RefreshCw size={13} />
+                      <span>{analysis ? "Re-run Diagnosis" : "Run AI Diagnosis"}</span>
+                    </>
                   )}
-                  <span>{analysis ? "Re-Analyze" : "Run Diagnosis"}</span>
                 </button>
               </div>
 
               {analysisError && (
                 <div className="alert alert-danger">
-                  <AlertCircle size={18} style={{ flexShrink: 0 }} />
+                  <AlertCircle size={16} style={{ flexShrink: 0, marginTop: "2px" }} />
                   <div>{analysisError}</div>
                 </div>
               )}
 
               {loadingAnalysis && !analysis && (
-                <div className="card" style={{ textAlign: "center", padding: "3rem" }}>
+                <div style={{ textAlign: "center", padding: "3rem 1rem" }}>
                   <div className="spinner" style={{ margin: "0 auto 1rem auto" }} />
                   <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
-                    Running RepoMind heuristic & ML diagnostic engine...
+                    Analyzing issue context, stack traces, and reproduction signals...
                   </p>
+                </div>
+              )}
+
+              {!loadingAnalysis && !analysis && (
+                <div className="empty-state" style={{ padding: "3rem 1.5rem" }}>
+                  <Cpu size={36} className="empty-state-icon" />
+                  <h4 className="empty-state-title">No AI Diagnosis Run Yet</h4>
+                  <p className="empty-state-desc">
+                    Click "Run AI Diagnosis" to inspect this issue for root causes, detect stack traces, and extract reproduction criteria.
+                  </p>
+                  <button className="btn btn-primary btn-sm" onClick={handleRunDiagnosis}>
+                    <Sparkles size={14} />
+                    <span>Diagnose Issue Now</span>
+                  </button>
                 </div>
               )}
 
               {analysis && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                  {/* Category & Priority Summary Cards */}
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
-                    {/* Category Card */}
-                    <div
-                      className="card"
-                      style={{
-                        padding: "1rem",
-                        backgroundColor: "var(--bg-card)",
-                        border: "1px solid var(--border-color)",
-                      }}
-                    >
-                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "0.35rem", textTransform: "uppercase" }}>
-                        Detected Category
+                  {/* Overview Cards Grid */}
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                      gap: "0.75rem",
+                    }}
+                  >
+                    <div className="card" style={{ padding: "0.85rem 1rem" }}>
+                      <span style={{ fontSize: "0.725rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                        Classification
+                      </span>
+                      <div style={{ fontSize: "0.95rem", fontWeight: 700, marginTop: "0.25rem", textTransform: "capitalize" }}>
+                        {analysis.category.replace("_", " ")}
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1.1rem", fontWeight: 700, color: "var(--text-primary)" }}>
-                        {analysis.category === "bug" && <Bug size={18} color="#ef4444" />}
-                        {analysis.category === "feature_request" && <Zap size={18} color="#3b82f6" />}
-                        {analysis.category === "question" && <HelpCircle size={18} color="#10b981" />}
-                        <span style={{ textTransform: "capitalize" }}>{analysis.category.replace("_", " ")}</span>
-                      </div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.35rem" }}>
-                        Confidence: <strong>{Math.round(analysis.confidence * 100)}%</strong>
-                      </div>
+                      <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                        Confidence: {Math.round(analysis.confidence * 100)}%
+                      </span>
                     </div>
 
-                    {/* Priority Card */}
-                    <div
-                      className="card"
-                      style={{
-                        padding: "1rem",
-                        backgroundColor: "var(--bg-card)",
-                        border: "1px solid var(--border-color)",
-                      }}
-                    >
-                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "0.35rem", textTransform: "uppercase" }}>
-                        Assigned Priority
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                        <span
-                          className="badge"
-                          style={{
-                            ...getPriorityStyle(analysis.priority),
-                            fontSize: "0.95rem",
-                            padding: "4px 10px",
-                          }}
-                        >
+                    <div className="card" style={{ padding: "0.85rem 1rem" }}>
+                      <span style={{ fontSize: "0.725rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                        Priority Triage
+                      </span>
+                      <div style={{ fontSize: "0.95rem", fontWeight: 700, marginTop: "0.25rem" }}>
+                        <span className="badge" style={getPriorityStyle(analysis.priority)}>
                           {analysis.priority}
                         </span>
                       </div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.35rem" }}>
-                        Model: <code>{analysis.model_version}</code>
-                      </div>
+                      <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                        Model: {analysis.model_version}
+                      </span>
                     </div>
 
-                    {/* Reproduction Check Card */}
+                    <div className="card" style={{ padding: "0.85rem 1rem" }}>
+                      <span style={{ fontSize: "0.725rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                        Signals Detected
+                      </span>
+                      <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.35rem", flexWrap: "wrap" }}>
+                        <span
+                          className={`badge ${
+                            analysis.stack_trace_detected ? "badge-open" : "badge-label"
+                          }`}
+                          style={{ fontSize: "0.7rem" }}
+                        >
+                          Stack Trace: {analysis.stack_trace_detected ? "Yes" : "No"}
+                        </span>
+                        <span
+                          className={`badge ${
+                            analysis.reproduction_steps_detected ? "badge-open" : "badge-label"
+                          }`}
+                          style={{ fontSize: "0.7rem" }}
+                        >
+                          Repro Steps: {analysis.reproduction_steps_detected ? "Yes" : "No"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Root Cause Hypothesis Card */}
+                  {analysis.root_cause_hypothesis && (
                     <div
                       className="card"
                       style={{
-                        padding: "1rem",
-                        backgroundColor: "var(--bg-card)",
-                        border: "1px solid var(--border-color)",
+                        padding: "1rem 1.25rem",
+                        backgroundColor: "rgba(99, 102, 241, 0.08)",
+                        border: "1px solid rgba(99, 102, 241, 0.25)",
                       }}
                     >
-                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "0.35rem", textTransform: "uppercase" }}>
-                        Reproduction Steps
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem" }}>
+                        <Lightbulb size={16} color="#818cf8" />
+                        <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#a5b4fc" }}>
+                          Root Cause Hypothesis
+                        </span>
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.95rem", fontWeight: 600 }}>
-                        {analysis.reproduction_steps_detected ? (
-                          <>
-                            <CheckCircle size={16} color="#10b981" />
-                            <span style={{ color: "#34d399" }}>Present in issue</span>
-                          </>
-                        ) : (
-                          <>
-                            <AlertTriangle size={16} color="#f59e0b" />
-                            <span style={{ color: "#fbbf24" }}>Missing sample snippet</span>
-                          </>
-                        )}
-                      </div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.35rem" }}>
-                        Stack Trace: {analysis.stack_trace_detected ? "Detected" : "None"}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Root Cause Hypothesis Box */}
-                  <div
-                    style={{
-                      padding: "1.25rem",
-                      borderRadius: "8px",
-                      background: "linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9))",
-                      border: "1px solid #3b82f6",
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-                      <Lightbulb size={18} color="#3b82f6" />
-                      <h4 style={{ fontSize: "0.95rem", fontWeight: 700, color: "#93c5fd" }}>
-                        Root Cause Hypothesis & Diagnosis Summary
-                      </h4>
-                    </div>
-                    <p style={{ fontSize: "0.875rem", lineHeight: 1.6, color: "var(--text-primary)" }}>
-                      {analysis.root_cause_hypothesis}
-                    </p>
-                    {analysis.error_type && (
-                      <div style={{ marginTop: "0.75rem", display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "3px 8px", backgroundColor: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: "4px", fontSize: "0.8rem", color: "#f87171", fontFamily: "var(--font-mono)" }}>
-                        <Bug size={12} />
-                        <span>Exception: {analysis.error_type}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Extracted Stack Trace (if present) */}
-                  {analysis.extracted_stack_trace && (
-                    <div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.4rem", fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 600 }}>
-                        <Code2 size={14} color="#f59e0b" />
-                        <span>EXTRACTED STACK TRACE & ERROR CONTEXT</span>
-                      </div>
-                      <pre
-                        style={{
-                          backgroundColor: "#050811",
-                          border: "1px solid var(--border-color)",
-                          borderRadius: "6px",
-                          padding: "1rem",
-                          fontFamily: "var(--font-mono)",
-                          fontSize: "0.8rem",
-                          color: "#fca5a5",
-                          overflowX: "auto",
-                          maxHeight: "220px",
-                          lineHeight: 1.5,
-                        }}
-                      >
-                        {analysis.extracted_stack_trace}
-                      </pre>
+                      <p style={{ fontSize: "0.85rem", color: "var(--text-primary)", lineHeight: 1.5 }}>
+                        {analysis.root_cause_hypothesis}
+                      </p>
                     </div>
                   )}
 
-                  {/* Affected Components & Files */}
+                  {/* Affected Subsystems */}
                   {analysis.affected_components && analysis.affected_components.length > 0 && (
                     <div>
-                      <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "0.4rem", fontWeight: 600 }}>
-                        AFFECTED FILES & MODULE SIGNATURES
-                      </div>
+                      <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", display: "block", marginBottom: "0.4rem" }}>
+                        Affected Components & Modules
+                      </span>
                       <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
-                        {analysis.affected_components.map((comp, idx) => (
+                        {analysis.affected_components.map((c, i) => (
                           <span
-                            key={idx}
+                            key={i}
+                            className="badge badge-label"
                             style={{
                               fontFamily: "var(--font-mono)",
                               fontSize: "0.75rem",
-                              backgroundColor: "var(--bg-card)",
-                              border: "1px solid var(--border-color)",
-                              padding: "2px 8px",
-                              borderRadius: "4px",
-                              color: "#60a5fa",
+                              backgroundColor: "rgba(255, 255, 255, 0.04)",
                             }}
                           >
-                            {comp}
+                            {c}
                           </span>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  {/* Action Recommendations */}
+                  {/* Extracted Stack Trace */}
+                  {analysis.extracted_stack_trace && (
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.4rem" }}>
+                        <Terminal size={14} color="#f59e0b" />
+                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", fontWeight: 600 }}>
+                          Extracted Stack Trace
+                        </span>
+                      </div>
+                      <div className="code-container" style={{ padding: "0.75rem 1rem", maxHeight: "200px" }}>
+                        <pre style={{ margin: 0, color: "#fca5a5" }}>{analysis.extracted_stack_trace}</pre>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Actionable Recommendations */}
                   {analysis.recommendations && analysis.recommendations.length > 0 && (
                     <div>
-                      <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "0.6rem", fontWeight: 600 }}>
-                        SUGGESTED NEXT ENGINEERING ACTIONS
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                        {analysis.recommendations.map((rec) => (
+                      <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", display: "block", marginBottom: "0.5rem", fontWeight: 600 }}>
+                        Actionable Recommendations
+                      </span>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        {analysis.recommendations.map((rec, i) => (
                           <div
-                            key={rec.id}
+                            key={i}
+                            className="card"
                             style={{
-                              padding: "0.875rem 1rem",
-                              backgroundColor: "var(--bg-card)",
-                              borderRadius: "6px",
-                              borderLeft: `4px solid ${
-                                rec.severity === "critical"
-                                  ? "#ef4444"
-                                  : rec.severity === "warning"
-                                  ? "#f59e0b"
-                                  : "#3b82f6"
-                              }`,
-                              borderTop: "1px solid var(--border-color)",
-                              borderRight: "1px solid var(--border-color)",
-                              borderBottom: "1px solid var(--border-color)",
+                              padding: "0.75rem 1rem",
+                              display: "flex",
+                              alignItems: "flex-start",
+                              gap: "0.75rem",
                             }}
                           >
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.25rem" }}>
-                              <span style={{ fontWeight: 600, fontSize: "0.875rem", color: "var(--text-primary)" }}>
+                            <div
+                              style={{
+                                width: "6px",
+                                height: "6px",
+                                borderRadius: "50%",
+                                backgroundColor:
+                                  rec.severity === "critical"
+                                    ? "#ef4444"
+                                    : rec.severity === "warning"
+                                    ? "#f59e0b"
+                                    : "#38bdf8",
+                                marginTop: "6px",
+                                flexShrink: 0,
+                              }}
+                            />
+                            <div>
+                              <strong style={{ fontSize: "0.85rem", color: "var(--text-primary)" }}>
                                 {rec.action_title}
-                              </span>
-                              <span
-                                style={{
-                                  fontSize: "0.7rem",
-                                  textTransform: "uppercase",
-                                  padding: "1px 6px",
-                                  borderRadius: "4px",
-                                  backgroundColor:
-                                    rec.severity === "critical"
-                                      ? "rgba(239, 68, 68, 0.2)"
-                                      : rec.severity === "warning"
-                                      ? "rgba(245, 158, 11, 0.2)"
-                                      : "rgba(59, 130, 246, 0.2)",
-                                  color:
-                                    rec.severity === "critical"
-                                      ? "#f87171"
-                                      : rec.severity === "warning"
-                                      ? "#fbbf24"
-                                      : "#60a5fa",
-                                }}
-                              >
-                                {rec.severity}
-                              </span>
+                              </strong>
+                              <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>
+                                {rec.rationale}
+                              </p>
                             </div>
-                            <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", margin: 0, lineHeight: 1.5 }}>
-                              {rec.rationale}
-                            </p>
                           </div>
                         ))}
                       </div>
@@ -695,178 +707,159 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
               )}
             </div>
           ) : (
-            /* TAB 3: PROPOSED CODE SOLUTION & PATCH */
+            /* Solution Tab */
             <div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "1.25rem",
+                  flexWrap: "wrap",
+                  gap: "0.75rem",
+                }}
+              >
                 <div>
-                  <h3 style={{ fontSize: "1.1rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    <Wrench size={18} color="#10b981" />
-                    <span>Automated Code Patch & Verification Test</span>
-                  </h3>
-                  <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>
-                    RepoMind synthesizes a defensive fix patch and regression test to solve the diagnosed root cause.
+                  <h3 style={{ fontSize: "1.05rem", fontWeight: 700 }}>Proposed Automated Code Fix</h3>
+                  <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+                    AI-generated diff patch and regression test for verification
                   </p>
                 </div>
 
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={handleRunDiagnosis}
-                  disabled={loadingAnalysis}
-                >
-                  {loadingAnalysis ? (
-                    <Loader2 size={14} className="spinner-sm" style={{ animation: "spin 1s linear infinite" }} />
-                  ) : (
-                    <RefreshCw size={14} />
-                  )}
-                  <span>Re-Generate Fix</span>
-                </button>
+                {!analysis && (
+                  <button className="btn btn-primary btn-sm" onClick={handleRunDiagnosis} disabled={loadingAnalysis}>
+                    <Sparkles size={14} />
+                    <span>Run Diagnosis to Generate Fix</span>
+                  </button>
+                )}
               </div>
 
-              {analysis?.proposed_code_patch ? (
+              {!analysis?.proposed_code_patch ? (
+                <div className="empty-state" style={{ padding: "3rem 1.5rem" }}>
+                  <Wrench size={36} className="empty-state-icon" />
+                  <h4 className="empty-state-title">No Code Patch Generated</h4>
+                  <p className="empty-state-desc">
+                    Diagnose this issue to generate an automated code fix patch and corresponding regression test.
+                  </p>
+                  <button className="btn btn-primary btn-sm" onClick={handleRunDiagnosis} disabled={loadingAnalysis}>
+                    <Sparkles size={14} />
+                    <span>Generate Fix Patch</span>
+                  </button>
+                </div>
+              ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                  {/* Target File Info Banner */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "0.75rem 1rem",
-                      backgroundColor: "var(--bg-card)",
-                      borderRadius: "6px",
-                      border: "1px solid var(--border-color)",
-                      fontSize: "0.85rem",
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <FileCode size={16} color="#3b82f6" />
-                      <span>Target File to Patch:</span>
-                      <strong style={{ color: "var(--text-primary)", fontFamily: "var(--font-mono)" }}>
-                        {analysis.fix_target_file || "src/main.py"}
-                      </strong>
-                    </div>
-                    <span className="badge badge-open" style={{ fontSize: "0.75rem" }}>
-                      Defensive Patch Ready
-                    </span>
-                  </div>
-
-                  {/* Why this fix works */}
-                  {analysis.patch_explanation && (
+                  {/* Target File */}
+                  {analysis.fix_target_file && (
                     <div
                       style={{
-                        padding: "1rem",
-                        backgroundColor: "rgba(16, 185, 129, 0.1)",
-                        border: "1px solid rgba(16, 185, 129, 0.3)",
-                        borderRadius: "6px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        padding: "0.6rem 0.85rem",
+                        backgroundColor: "rgba(255, 255, 255, 0.03)",
+                        border: "1px solid var(--border-subtle)",
+                        borderRadius: "var(--radius-sm)",
+                        fontSize: "0.825rem",
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.35rem" }}>
-                        <CheckCircle size={15} color="#10b981" />
-                        <span style={{ fontWeight: 600, fontSize: "0.875rem", color: "#6ee7b7" }}>
-                          How this patch solves the bug
-                        </span>
-                      </div>
-                      <p style={{ fontSize: "0.825rem", lineHeight: 1.5, color: "var(--text-primary)", margin: 0 }}>
+                      <FileCode size={15} color="#818cf8" />
+                      <span style={{ color: "var(--text-muted)" }}>Target File:</span>
+                      <code style={{ color: "#ffffff", fontWeight: 600 }}>{analysis.fix_target_file}</code>
+                    </div>
+                  )}
+
+                  {/* Patch Explanation */}
+                  {analysis.patch_explanation && (
+                    <div
+                      className="card"
+                      style={{
+                        padding: "0.85rem 1rem",
+                        backgroundColor: "rgba(16, 185, 129, 0.07)",
+                        border: "1px solid rgba(16, 185, 129, 0.25)",
+                      }}
+                    >
+                      <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#34d399", display: "block", marginBottom: "0.25rem" }}>
+                        Patch Rationale & Design
+                      </span>
+                      <p style={{ fontSize: "0.825rem", color: "var(--text-primary)", lineHeight: 1.5 }}>
                         {analysis.patch_explanation}
                       </p>
                     </div>
                   )}
 
-                  {/* Proposed Patch Diff Box */}
+                  {/* Unified Diff Patch Viewer */}
                   <div>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.4rem" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 600 }}>
-                        <Code2 size={14} color="#10b981" />
-                        <span>PROPOSED GIT UNIFIED DIFF PATCH</span>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: "0.4rem",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                        <Code2 size={14} color="#818cf8" />
+                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", fontWeight: 600 }}>
+                          Unified Code Diff Patch
+                        </span>
                       </div>
 
                       <button
                         className="btn btn-secondary btn-sm"
-                        style={{ fontSize: "0.75rem", padding: "2px 8px" }}
-                        onClick={() => handleCopy(analysis.proposed_code_patch || "", "patch")}
+                        onClick={() => handleCopy(analysis.proposed_code_patch!, "patch")}
+                        style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}
                       >
-                        {copiedPatch ? <Check size={12} color="#10b981" /> : <Copy size={12} />}
-                        <span>{copiedPatch ? "Copied!" : "Copy Patch"}</span>
+                        {copiedPatch ? <Check size={12} color="#34d399" /> : <Copy size={12} />}
+                        <span>{copiedPatch ? "Copied Patch!" : "Copy Patch"}</span>
                       </button>
                     </div>
 
-                    <div
-                      style={{
-                        backgroundColor: "#030712",
-                        border: "1px solid var(--border-color)",
-                        borderRadius: "6px",
-                        overflowX: "auto",
-                        maxHeight: "260px",
-                        padding: "0.5rem 0",
-                      }}
-                    >
+                    <div className="code-container" style={{ maxHeight: "300px" }}>
                       {analysis.proposed_code_patch.split("\n").map((line, idx) =>
                         renderDiffLine(line, idx)
                       )}
                     </div>
                   </div>
 
-                  {/* Automated Verification Test */}
+                  {/* Regression Test Code Block */}
                   {analysis.verification_test_code && (
                     <div>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.4rem" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 600 }}>
-                          <Terminal size={14} color="#60a5fa" />
-                          <span>REGRESSION VERIFICATION UNIT TEST (Pytest)</span>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          marginBottom: "0.4rem",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                          <CheckCircle2 size={14} color="#34d399" />
+                          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", fontWeight: 600 }}>
+                            Automated Verification & Regression Test
+                          </span>
                         </div>
 
                         <button
                           className="btn btn-secondary btn-sm"
-                          style={{ fontSize: "0.75rem", padding: "2px 8px" }}
-                          onClick={() => handleCopy(analysis.verification_test_code || "", "test")}
+                          onClick={() => handleCopy(analysis.verification_test_code!, "test")}
+                          style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}
                         >
-                          {copiedTest ? <Check size={12} color="#10b981" /> : <Copy size={12} />}
-                          <span>{copiedTest ? "Copied!" : "Copy Test"}</span>
+                          {copiedTest ? <Check size={12} color="#34d399" /> : <Copy size={12} />}
+                          <span>{copiedTest ? "Copied Test!" : "Copy Test"}</span>
                         </button>
                       </div>
 
-                      <pre
-                        style={{
-                          backgroundColor: "#030712",
-                          border: "1px solid var(--border-color)",
-                          borderRadius: "6px",
-                          padding: "1rem",
-                          fontFamily: "var(--font-mono)",
-                          fontSize: "0.8rem",
-                          color: "#93c5fd",
-                          overflowX: "auto",
-                          maxHeight: "220px",
-                          lineHeight: 1.5,
-                        }}
-                      >
-                        {analysis.verification_test_code}
-                      </pre>
+                      <div className="code-container" style={{ padding: "0.75rem 1rem", maxHeight: "250px" }}>
+                        <pre style={{ margin: 0, color: "#93c5fd" }}>
+                          {analysis.verification_test_code}
+                        </pre>
+                      </div>
                     </div>
                   )}
-                </div>
-              ) : (
-                <div className="card" style={{ textAlign: "center", padding: "3rem" }}>
-                  <Wrench size={36} color="var(--text-muted)" style={{ margin: "0 auto 1rem auto" }} />
-                  <h4 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.5rem" }}>
-                    No Proposed Solution Generated Yet
-                  </h4>
-                  <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", maxWidth: "420px", margin: "0 auto 1.5rem auto" }}>
-                    Click below to have RepoMind analyze the bug context and synthesize a proposed code patch and verification test.
-                  </p>
-                  <button className="btn btn-primary btn-sm" onClick={handleRunDiagnosis} disabled={loadingAnalysis}>
-                    {loadingAnalysis ? <Loader2 size={14} className="spinner-sm" /> : <Sparkles size={14} />}
-                    <span>Generate Solution & Patch</span>
-                  </button>
                 </div>
               )}
             </div>
           )}
-        </div>
-
-        {/* Close button footer */}
-        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1rem", paddingTop: "0.75rem", borderTop: "1px solid var(--border-color)", flexShrink: 0 }}>
-          <button className="btn btn-secondary" onClick={onClose}>
-            Close
-          </button>
         </div>
       </div>
     </div>

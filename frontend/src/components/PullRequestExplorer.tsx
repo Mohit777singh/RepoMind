@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { apiGetRepositoryPullRequests } from "../api";
-import { PaginatedPullRequests, PullRequest, Repository, Issue } from "../types";
+import { Issue, PaginatedPullRequests, PullRequest, Repository } from "../types";
 import { PullRequestDetailModal } from "./PullRequestDetailModal";
 import {
   AlertCircle,
@@ -83,8 +83,7 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
     setPage(1);
   };
 
-  const hasActiveFilters =
-    statusFilter !== "all" || titleSearch.trim() !== "";
+  const hasActiveFilters = statusFilter !== "all" || titleSearch.trim() !== "";
 
   return (
     <div>
@@ -92,8 +91,8 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
       <div
         className="card"
         style={{
-          marginBottom: "1.5rem",
-          padding: "1rem 1.25rem",
+          marginBottom: "1.25rem",
+          padding: "0.875rem 1.25rem",
           display: "flex",
           flexWrap: "wrap",
           alignItems: "center",
@@ -114,7 +113,7 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
           <div
             style={{
               position: "relative",
-              minWidth: "240px",
+              minWidth: "220px",
               flex: 1,
               maxWidth: "340px",
             }}
@@ -122,7 +121,10 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
             <input
               type="text"
               className="form-input"
-              style={{ paddingLeft: "2.25rem", paddingRight: "2rem" }}
+              style={{
+                paddingLeft: "2.25rem",
+                paddingRight: titleSearch ? "2rem" : "0.75rem",
+              }}
               placeholder="Search pull requests..."
               value={titleSearch}
               onChange={(e) => {
@@ -131,10 +133,10 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
               }}
             />
             <Search
-              size={15}
+              size={14}
               style={{
                 position: "absolute",
-                left: "0.75rem",
+                left: "0.85rem",
                 top: "50%",
                 transform: "translateY(-50%)",
                 color: "var(--text-muted)",
@@ -160,11 +162,11 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
           </div>
 
           {/* Status Filter */}
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <Filter size={15} color="var(--text-muted)" />
+          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+            <Filter size={14} color="var(--text-muted)" />
             <select
               className="form-select"
-              style={{ width: "auto" }}
+              style={{ width: "auto", minWidth: "150px" }}
               value={statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value);
@@ -182,7 +184,7 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
             <button
               className="btn btn-secondary btn-sm"
               onClick={handleResetFilters}
-              style={{ fontSize: "0.75rem" }}
+              style={{ fontSize: "0.75rem", padding: "0.3rem 0.6rem" }}
             >
               Clear Filters
             </button>
@@ -226,30 +228,46 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
       {/* Error alert */}
       {error && (
         <div className="alert alert-danger">
-          <AlertCircle size={18} style={{ flexShrink: 0 }} />
+          <AlertCircle size={16} style={{ flexShrink: 0, marginTop: "2px" }} />
           <div>{error}</div>
         </div>
       )}
 
-      {/* Loading Spinner */}
+      {/* Loading Skeletons */}
       {loading && (
-        <div className="card" style={{ padding: "4rem 2rem", textAlign: "center" }}>
-          <div className="spinner" style={{ margin: "0 auto 1rem auto" }} />
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
-            Retrieving pull requests...
-          </p>
+        <div className="card" style={{ padding: "1.5rem" }}>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <div
+              key={n}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "1rem",
+                padding: "0.85rem 0",
+                borderBottom: n < 5 ? "1px solid var(--border-subtle)" : "none",
+              }}
+            >
+              <div className="skeleton" style={{ width: "40px", height: "16px" }} />
+              <div style={{ flex: 1 }}>
+                <div className="skeleton" style={{ width: "60%", height: "16px", marginBottom: "6px" }} />
+                <div className="skeleton" style={{ width: "30%", height: "12px" }} />
+              </div>
+              <div className="skeleton" style={{ width: "80px", height: "22px" }} />
+              <div className="skeleton" style={{ width: "100px", height: "26px" }} />
+            </div>
+          ))}
         </div>
       )}
 
       {/* Empty State */}
       {!loading && prsData.items.length === 0 && (
         <div className="empty-state">
-          <GitPullRequest size={42} className="empty-state-icon" />
+          <GitPullRequest size={40} className="empty-state-icon" />
           <h3 className="empty-state-title">No Pull Requests Found</h3>
           <p className="empty-state-desc">
             {hasActiveFilters
               ? "No pull requests match your search criteria. Try adjusting or clearing filters."
-              : "No pull requests have been stored for this repository yet. If this repository was ingested earlier, trigger a sync to pull PRs."}
+              : "No pull requests have been stored for this repository yet. Trigger a sync to ingest PRs."}
           </p>
 
           <div style={{ display: "flex", justifyContent: "center", gap: "0.75rem" }}>
@@ -270,35 +288,17 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
 
       {/* PR Table / List */}
       {!loading && prsData.items.length > 0 && (
-        <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+        <div className="data-table-wrapper">
           <div style={{ overflowX: "auto" }}>
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                textAlign: "left",
-                fontSize: "0.875rem",
-              }}
-            >
+            <table className="data-table">
               <thead>
-                <tr
-                  style={{
-                    borderBottom: "1px solid var(--border-color)",
-                    backgroundColor: "rgba(31, 41, 55, 0.4)",
-                    color: "var(--text-secondary)",
-                    fontWeight: 600,
-                  }}
-                >
-                  <th style={{ padding: "0.85rem 1.25rem", width: "80px" }}>#</th>
-                  <th style={{ padding: "0.85rem 1rem" }}>Title & Labels</th>
-                  <th style={{ padding: "0.85rem 1rem", width: "120px" }}>Status</th>
-                  <th style={{ padding: "0.85rem 1rem", width: "140px" }}>Author</th>
-                  <th style={{ padding: "0.85rem 1rem", width: "130px", textAlign: "right" }}>
-                    Date
-                  </th>
-                  <th style={{ padding: "0.85rem 1.25rem", width: "140px", textAlign: "right" }}>
-                    Actions
-                  </th>
+                <tr>
+                  <th style={{ width: "80px" }}>#</th>
+                  <th>Title & Labels</th>
+                  <th style={{ width: "120px" }}>Status</th>
+                  <th style={{ width: "140px" }}>Author</th>
+                  <th style={{ width: "130px", textAlign: "right" }}>Date</th>
+                  <th style={{ width: "160px", textAlign: "right" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -309,35 +309,26 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
                   return (
                     <tr
                       key={pr.id}
+                      className="data-table-row"
                       onClick={() => setSelectedPr(pr)}
-                      style={{
-                        borderBottom: "1px solid var(--border-color)",
-                        cursor: "pointer",
-                        transition: "background-color 0.15s",
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.backgroundColor = "rgba(55, 65, 81, 0.35)")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.backgroundColor = "transparent")
-                      }
                     >
                       <td
                         style={{
-                          padding: "1rem 1.25rem",
                           color: "var(--text-muted)",
                           fontFamily: "var(--font-mono)",
+                          fontSize: "0.8125rem",
                         }}
                       >
                         #{pr.pr_number}
                       </td>
 
-                      <td style={{ padding: "1rem 1rem" }}>
+                      <td>
                         <div
                           style={{
                             fontWeight: 600,
                             color: "var(--text-primary)",
                             marginBottom: "0.35rem",
+                            lineHeight: 1.4,
                           }}
                         >
                           {pr.title}
@@ -345,9 +336,7 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
 
                         {/* Labels */}
                         {pr.labels && pr.labels.length > 0 && (
-                          <div
-                            style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}
-                          >
+                          <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>
                             {pr.labels.map((lbl, idx) => {
                               const name = typeof lbl === "string" ? lbl : lbl.name;
                               const color =
@@ -357,9 +346,9 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
                                   key={idx}
                                   className="badge badge-label"
                                   style={{
-                                    backgroundColor: `#${color}25`,
+                                    backgroundColor: `#${color}18`,
                                     color: `#${color}`,
-                                    borderColor: `#${color}60`,
+                                    borderColor: `#${color}40`,
                                   }}
                                 >
                                   {name}
@@ -370,7 +359,7 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
                         )}
                       </td>
 
-                      <td style={{ padding: "1rem 1rem" }}>
+                      <td>
                         {isMerged ? (
                           <span className="badge badge-merged">
                             <GitMerge size={12} />
@@ -389,16 +378,15 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
                         )}
                       </td>
 
-                      <td style={{ padding: "1rem 1rem", color: "var(--text-secondary)" }}>
+                      <td style={{ color: "var(--text-secondary)", fontSize: "0.8125rem" }}>
                         {pr.author || "Unknown"}
                       </td>
 
                       <td
                         style={{
-                          padding: "1rem 1rem",
                           textAlign: "right",
                           color: "var(--text-muted)",
-                          fontSize: "0.8rem",
+                          fontSize: "0.775rem",
                         }}
                       >
                         {isMerged && pr.merged_at
@@ -407,10 +395,7 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
                       </td>
 
                       <td
-                        style={{
-                          padding: "1rem 1.25rem",
-                          textAlign: "right",
-                        }}
+                        style={{ textAlign: "right" }}
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div
@@ -427,18 +412,18 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
                               setSelectedPr(pr);
                             }}
                             style={{
-                              padding: "3px 8px",
+                              padding: "0.275rem 0.65rem",
                               fontSize: "0.75rem",
-                              color: "#93c5fd",
-                              borderColor: "rgba(59, 130, 246, 0.4)",
+                              color: "#a5b4fc",
+                              borderColor: "rgba(99, 102, 241, 0.35)",
                               display: "inline-flex",
                               alignItems: "center",
                               gap: "0.35rem",
                             }}
-                            title="Inspect Before & After Side-by-Side Diff"
+                            title="Inspect Split Diff & Changes"
                           >
-                            <Columns size={13} />
-                            <span>Diff (Before/After)</span>
+                            <Columns size={12} />
+                            <span>Split Diff</span>
                           </button>
 
                           {pr.html_url && (
@@ -446,9 +431,9 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
                               href={pr.html_url}
                               target="_blank"
                               rel="noreferrer"
-                              className="btn btn-secondary btn-sm"
-                              style={{ padding: "3px 6px", fontSize: "0.75rem" }}
-                              title="Open in GitHub"
+                              className="btn btn-ghost btn-sm"
+                              style={{ padding: "0.275rem 0.45rem" }}
+                              title="Open on GitHub"
                             >
                               <ExternalLink size={13} />
                             </a>
@@ -465,17 +450,17 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
           {/* Pagination Controls */}
           <div
             style={{
-              padding: "0.875rem 1.25rem",
+              padding: "0.85rem 1.25rem",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              borderTop: "1px solid var(--border-color)",
-              backgroundColor: "rgba(17, 24, 39, 0.5)",
+              borderTop: "1px solid var(--border-subtle)",
+              backgroundColor: "rgba(255, 255, 255, 0.015)",
               flexWrap: "wrap",
               gap: "1rem",
             }}
           >
-            <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+            <span style={{ fontSize: "0.8125rem", color: "var(--text-secondary)" }}>
               Showing {prsData.items.length > 0 ? (page - 1) * perPage + 1 : 0} to{" "}
               {Math.min(page * perPage, prsData.total)} of {prsData.total} pull requests
             </span>
@@ -483,7 +468,7 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <span
                 style={{
-                  fontSize: "0.85rem",
+                  fontSize: "0.8125rem",
                   color: "var(--text-secondary)",
                   marginRight: "0.5rem",
                 }}
@@ -496,19 +481,17 @@ export const PullRequestExplorer: React.FC<PullRequestExplorerProps> = ({
                 disabled={page <= 1}
                 onClick={() => setPage((prev) => Math.max(1, prev - 1))}
               >
-                <ChevronLeft size={16} />
+                <ChevronLeft size={15} />
                 <span>Prev</span>
               </button>
 
               <button
                 className="btn btn-secondary btn-sm"
                 disabled={page >= prsData.total_pages}
-                onClick={() =>
-                  setPage((prev) => Math.min(prsData.total_pages, prev + 1))
-                }
+                onClick={() => setPage((prev) => Math.min(prsData.total_pages, prev + 1))}
               >
                 <span>Next</span>
-                <ChevronRight size={16} />
+                <ChevronRight size={15} />
               </button>
             </div>
           </div>
