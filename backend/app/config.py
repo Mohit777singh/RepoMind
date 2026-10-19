@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "postgresql+psycopg://postgres:1234@localhost:5432/repomind"
+    DATABASE_URL: str = "sqlite:///repomind.db"
     JWT_SECRET_KEY: str = "repomind-super-secret-key-eval1-development-2026"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
